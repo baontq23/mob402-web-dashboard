@@ -61,21 +61,23 @@ function AuthLogin() {
   const {
     control,
     handleSubmit,
+    setError,
     formState: { errors }
   } = useForm({
     resolver: yupResolver(schema),
     mode: 'onBlur',
 
     defaultValues: {
-      email: '',
-      password: ''
+      email: 'baontq23@gmail.com',
+      password: 'Bao03072003'
     }
   });
   const onSubmit = (data) => {
     setLoading(true);
-    console.log(data);
     setTimeout(() => {
-      auth.login(data);
+      auth.login(data, () => {
+        setError('email', { message: 'Thông tin đăng nhập không chính xác!' });
+      });
     }, 1);
   };
   return (
