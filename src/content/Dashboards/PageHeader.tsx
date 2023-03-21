@@ -9,6 +9,7 @@ import {
 } from '@mui/material';
 import DocumentScannerTwoToneIcon from '@mui/icons-material/DocumentScannerTwoTone';
 import AddAlertTwoToneIcon from '@mui/icons-material/AddAlertTwoTone';
+import { useAuth } from '@/hook/useAuth';
 
 const AvatarPageTitle = styled(Avatar)(
   ({ theme }) => `
@@ -35,8 +36,9 @@ const AvatarPageTitle = styled(Avatar)(
 );
 
 function PageHeader() {
+  const auth = useAuth();
   const user = {
-    name: 'Bao Nguyen',
+    name: auth.user.name,
     avatar: '/static/images/avatars/1.jpg'
   };
 

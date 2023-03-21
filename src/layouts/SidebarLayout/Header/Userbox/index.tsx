@@ -20,7 +20,7 @@ import { styled } from '@mui/material/styles';
 import ExpandMoreTwoToneIcon from '@mui/icons-material/ExpandMoreTwoTone';
 import AccountBoxTwoToneIcon from '@mui/icons-material/AccountBoxTwoTone';
 import LockOpenTwoToneIcon from '@mui/icons-material/LockOpenTwoTone';
-import AccountTreeTwoToneIcon from '@mui/icons-material/AccountTreeTwoTone';
+import { useAuth } from '@/hook/useAuth';
 
 const UserBoxButton = styled(Button)(
   ({ theme }) => `
@@ -58,10 +58,11 @@ const UserBoxDescription = styled(Typography)(
 );
 
 function HeaderUserbox() {
+  const auth = useAuth();
   const user = {
-    name: 'Bao Nguyen',
+    name: auth.user.name,
     avatar: '/static/images/logo/react.png',
-    jobtitle: 'Mobile developer'
+    email: auth.user.email
   };
 
   const ref = useRef<any>(null);
@@ -83,7 +84,7 @@ function HeaderUserbox() {
           <UserBoxText>
             <UserBoxLabel variant="body1">{user.name}</UserBoxLabel>
             <UserBoxDescription variant="body2">
-              {user.jobtitle}
+              {user.email}
             </UserBoxDescription>
           </UserBoxText>
         </Hidden>
@@ -109,7 +110,7 @@ function HeaderUserbox() {
           <UserBoxText>
             <UserBoxLabel variant="body1">{user.name}</UserBoxLabel>
             <UserBoxDescription variant="body2">
-              {user.jobtitle}
+              {user.email}
             </UserBoxDescription>
           </UserBoxText>
         </MenuUserBox>
@@ -121,16 +122,10 @@ function HeaderUserbox() {
               <ListItemText primary="My Profile" />
             </ListItemButton>
           </NextLink>
-          <NextLink href="/management/profile/settings" passHref>
-            <ListItemButton>
-              <AccountTreeTwoToneIcon fontSize="small" sx={{ mr: 1 }} />
-              <ListItemText primary="Account Settings" />
-            </ListItemButton>
-          </NextLink>
         </List>
         <Divider />
         <Box sx={{ m: 1 }}>
-          <Button color="primary" fullWidth>
+          <Button color="primary" fullWidth onClick={() => auth.logout()}>
             <LockOpenTwoToneIcon sx={{ mr: 1 }} />
             Sign out
           </Button>
