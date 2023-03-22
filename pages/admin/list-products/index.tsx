@@ -1,17 +1,17 @@
 import Head from 'next/head';
 import SidebarLayout from '@/layouts/SidebarLayout';
-import PageHeader from '@/content/Management/Transactions/PageHeader';
+import PageHeader from '@/content/Admin/ListProducts/PageHeader';
 import PageTitleWrapper from '@/components/PageTitleWrapper';
 import { Grid, Container } from '@mui/material';
 import Footer from '@/components/Footer';
 
-import RecentOrders from '@/content/Management/Transactions/RecentOrders';
+import ListProducts from '@/content/Admin/ListProducts/ListProducts';
 
 function ApplicationsTransactions() {
   return (
     <>
       <Head>
-        <title>Transactions - Applications</title>
+        <title>Danh sách sản phẩm </title>
       </Head>
       <PageTitleWrapper>
         <PageHeader />
@@ -25,7 +25,7 @@ function ApplicationsTransactions() {
           spacing={3}
         >
           <Grid item xs={12}>
-            <RecentOrders />
+            <ListProducts />
           </Grid>
         </Grid>
       </Container>

@@ -1,5 +1,7 @@
+import axiosInstance from '@/config/api';
+import axios from 'axios';
 import { useRouter } from 'next/router';
-import { createContext, useState } from 'react';
+import { createContext, useEffect, useState } from 'react';
 
 type Props = {
   children: React.ReactNode;
@@ -7,9 +9,12 @@ type Props = {
 
 type ErrCallbackType = (err: { [key: string]: string }) => void;
 type UserDataType = {
-  fullName: string;
-  username: string;
+  id: string;
+  name: string;
+  email: string;
+  avatar: string | null;
   role: string;
+  isEmailVerified: boolean;
 };
 
 type AuthValuesType = {
@@ -22,7 +27,7 @@ type AuthValuesType = {
 };
 
 type LoginParams = {
-  username: string;
+  email: string;
   password: string;
 };
 
@@ -41,20 +46,74 @@ const AuthProvider: React.FC<Props> = ({ children }) => {
   const router = useRouter();
   const [user, setUser] = useState(defaultProvider.user);
   const [loading, setLoading] = useState(defaultProvider.loading);
+  useEffect(() => {
+    const init = async () => {
+      const refreshToken = window.localStorage.getItem('refreshToken');
+      if (refreshToken) {
+        setLoading(true);
+        try {
+          const response = await axios.post(
+            'http://192.168.31.238:3010/v1/auth/refresh-tokens',
+            {
+              refreshToken
+            }
+          );
+          if (response) {
+            localStorage.setItem(
+              'accessToken',
+              response.data.tokens.access.token
+            );
+            localStorage.setItem(
+              'refreshToken',
+              response.data.tokens.refresh.token
+            );
+            setUser(response.data.user);
+            setLoading(false);
+          }
+        } catch (error) {
+          window.localStorage.removeItem('accessToken');
+          window.localStorage.removeItem('refreshToken');
+          router.push('/auth/login');
+        }
+      } else {
+        router.push('/auth/login');
+      }
+    };
+
+    init();
+  }, []);
+
   const login = async (params: LoginParams, onError: ErrCallbackType) => {
-    setUser({
-      username: params.username,
-      fullName: params.username,
-      role: 'Admin'
-    });
-    const returnUrl = router.query.returnUrl;
-    const redirectURL =
-      returnUrl && returnUrl !== '/' ? returnUrl : '/dashboards';
-    router.replace(redirectURL as string);
+    axiosInstance({
+      url: 'v1/auth/login',
+      method: 'POST',
+      data: {
+        email: params.email,
+        password: params.password
+      }
+    })
+      .then((res) => {
+        localStorage.setItem('accessToken', res.data.tokens.access.token);
+        localStorage.setItem('refreshToken', res.data.tokens.refresh.token);
+        setUser(res.data.user);
+        const returnUrl = router.query.returnUrl;
+        const redirectURL =
+          returnUrl && returnUrl !== '/' ? returnUrl : '/dashboards';
+        router.replace(redirectURL as string);
+      })
+      .catch((e) => {
+        console.log(e);
+        onError(e);
+      });
   };
 
   const logout = async () => {
+    axiosInstance.post('v1/auth/logout', {
+      refreshToken: localStorage.getItem('refreshToken')
+    });
     setUser(null);
+    window.localStorage.removeItem('accessToken');
+    window.localStorage.removeItem('refreshToken');
     router.push('/auth/login');
   };
 

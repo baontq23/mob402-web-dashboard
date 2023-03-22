@@ -200,37 +200,7 @@ function SidebarMenu() {
                     onClick={closeSidebar}
                     startIcon={<BrightnessLowTwoToneIcon />}
                   >
-                    Overview
-                  </Button>
-                </NextLink>
-              </ListItem>
-            </List>
-          </SubMenuWrapper>
-        </List>
-        {/* <List
-          component="div"
-          subheader={
-            <ListSubheader component="div" disableSticky>
-              Management
-            </ListSubheader>
-          }
-        >
-          <SubMenuWrapper>
-            <List component="div">
-              <ListItem component="div">
-                <NextLink href="/management/transactions" passHref>
-                  <Button
-                    className={
-                      currentRoute === '/management/transactions'
-                        ? 'active'
-                        : ''
-                    }
-                    disableRipple
-                    component="a"
-                    onClick={closeSidebar}
-                    startIcon={<TableChartTwoToneIcon />}
-                  >
-                    Transactions List
+                    Tổng quan
                   </Button>
                 </NextLink>
               </ListItem>
@@ -241,41 +211,69 @@ function SidebarMenu() {
           component="div"
           subheader={
             <ListSubheader component="div" disableSticky>
-              Accounts
+              Quản lý
             </ListSubheader>
           }
         >
           <SubMenuWrapper>
             <List component="div">
               <ListItem component="div">
-                <NextLink href="/management/profile" passHref>
+                <NextLink href="/management/list-products" passHref>
                   <Button
                     className={
-                      currentRoute === '/management/profile' ? 'active' : ''
-                    }
-                    disableRipple
-                    component="a"
-                    onClick={closeSidebar}
-                    startIcon={<AccountCircleTwoToneIcon />}
-                  >
-                    User Profile
-                  </Button>
-                </NextLink>
-              </ListItem>
-              <ListItem component="div">
-                <NextLink href="/management/profile/settings" passHref>
-                  <Button
-                    className={
-                      currentRoute === '/management/profile/settings'
+                      currentRoute === '/management/list-products'
                         ? 'active'
                         : ''
                     }
                     disableRipple
                     component="a"
                     onClick={closeSidebar}
+                    startIcon={<TableChartTwoToneIcon />}
+                  >
+                    Danh sách sản phẩm
+                  </Button>
+                </NextLink>
+              </ListItem>
+            </List>
+          </SubMenuWrapper>
+        </List>
+        <List
+          component="div"
+          subheader={
+            <ListSubheader component="div" disableSticky>
+              Administrator
+            </ListSubheader>
+          }
+        >
+          <SubMenuWrapper>
+            <List component="div">
+              <ListItem component="div">
+                <NextLink href="/admin/list-users" passHref>
+                  <Button
+                    className={
+                      currentRoute === '/admin/list-users' ? 'active' : ''
+                    }
+                    disableRipple
+                    component="a"
+                    onClick={closeSidebar}
+                    startIcon={<AccountCircleTwoToneIcon />}
+                  >
+                    Danh sách người dùng
+                  </Button>
+                </NextLink>
+              </ListItem>
+              <ListItem component="div">
+                <NextLink href="/admin/list-products" passHref>
+                  <Button
+                    className={
+                      currentRoute === '/admin/list-products' ? 'active' : ''
+                    }
+                    disableRipple
+                    component="a"
+                    onClick={closeSidebar}
                     startIcon={<DisplaySettingsTwoToneIcon />}
                   >
-                    Account Settings
+                    Danh sách sản phẩm
                   </Button>
                 </NextLink>
               </ListItem>
@@ -498,7 +496,7 @@ function SidebarMenu() {
               </ListItem>
             </List>
           </SubMenuWrapper>
-        </List> */}
+        </List>
       </MenuWrapper>
     </>
   );
