@@ -13,7 +13,7 @@ function ManagementUserProfile() {
   const user = {
     name: auth.user.name,
     coverImg: '/static/images/placeholders/covers/5.jpg',
-    avatar: '/static/images/avatars/4.jpg',
+    avatar: auth.user.avatar,
     role: auth.user.role,
     isEmailVerified: auth.user.isEmailVerified
   };
