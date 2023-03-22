@@ -59,11 +59,6 @@ const UserBoxDescription = styled(Typography)(
 
 function HeaderUserbox() {
   const auth = useAuth();
-  const user = {
-    name: auth.user.name,
-    avatar: '/static/images/logo/react.png',
-    email: auth.user.email
-  };
 
   const ref = useRef<any>(null);
   const [isOpen, setOpen] = useState<boolean>(false);
@@ -79,12 +74,12 @@ function HeaderUserbox() {
   return (
     <>
       <UserBoxButton color="secondary" ref={ref} onClick={handleOpen}>
-        <Avatar variant="rounded" alt={user.name} src={user.avatar} />
+        <Avatar variant="rounded" alt={auth.user.name} src={auth.user.avatar} />
         <Hidden mdDown>
           <UserBoxText>
-            <UserBoxLabel variant="body1">{user.name}</UserBoxLabel>
+            <UserBoxLabel variant="body1">{auth.user.name}</UserBoxLabel>
             <UserBoxDescription variant="body2">
-              {user.email}
+              {auth.user.email}
             </UserBoxDescription>
           </UserBoxText>
         </Hidden>
@@ -106,11 +101,11 @@ function HeaderUserbox() {
         }}
       >
         <MenuUserBox sx={{ minWidth: 210 }} display="flex">
-          <Avatar variant="rounded" alt={user.name} src={user.avatar} />
+          <Avatar variant="rounded" alt={auth.user.name} src={null} />
           <UserBoxText>
-            <UserBoxLabel variant="body1">{user.name}</UserBoxLabel>
+            <UserBoxLabel variant="body1">{auth.user.name}</UserBoxLabel>
             <UserBoxDescription variant="body2">
-              {user.email}
+              {auth.user.email}
             </UserBoxDescription>
           </UserBoxText>
         </MenuUserBox>
