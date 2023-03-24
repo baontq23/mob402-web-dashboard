@@ -1,10 +1,9 @@
 import { Card } from '@mui/material';
-import RecentOrdersTable from './ListUsersTable';
-import { subDays } from 'date-fns';
+import ListUsersTable from './ListUsersTable';
 import { IUser } from '@/models/user';
 
 const ListUsers = () => {
-  const cryptoOrders: IUser[] = [
+  const users: IUser[] = [
     {
       id: '1',
       avatar: null,
@@ -19,7 +18,7 @@ const ListUsers = () => {
 
   return (
     <Card>
-      <RecentOrdersTable cryptoOrders={cryptoOrders} />
+      <ListUsersTable users={users} />
     </Card>
   );
 };

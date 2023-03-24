@@ -5,7 +5,7 @@ import PageTitleWrapper from '@/components/PageTitleWrapper';
 import { Grid, Container } from '@mui/material';
 import Footer from '@/components/Footer';
 
-import ListProducts from '@/content/Management/ListProducts/ListProducts';
+import ListProductsTable from '@/content/Management/ListProducts/ListProductsTable';
 
 function ApplicationsTransactions() {
   return (
@@ -25,7 +25,7 @@ function ApplicationsTransactions() {
           spacing={3}
         >
           <Grid item xs={12}>
-            <ListProducts />
+            <ListProductsTable />
           </Grid>
         </Grid>
       </Container>

@@ -1,6 +1,5 @@
-import { FC, ChangeEvent, useState } from 'react';
+import { FC, ChangeEvent, useState, useCallback, useEffect } from 'react';
 import { styled } from '@mui/material/styles';
-import PropTypes from 'prop-types';
 import {
   Tooltip,
   Divider,
@@ -30,21 +29,22 @@ import AddTwoToneIcon from '@mui/icons-material/AddTwoTone';
 import EditTwoToneIcon from '@mui/icons-material/EditTwoTone';
 import UploadTwoToneIcon from '@mui/icons-material/UploadTwoTone';
 import DeleteTwoToneIcon from '@mui/icons-material/DeleteTwoTone';
+import RemoveRedEyeOutlined from '@mui/icons-material/RemoveRedEyeOutlined';
 import { IProduct } from '@/models/product';
+import axiosInstance from '@/config/api';
 
 interface ListProductsTableProps {
   className?: string;
-  listProducts: IProduct[];
 }
 
-const RecentOrdersTable: FC<ListProductsTableProps> = ({ listProducts }) => {
+const RecentOrdersTable: FC<ListProductsTableProps> = () => {
   const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
   const selectedBulkActions = selectedProducts.length > 0;
-
-  const [searchData, setSearchData] = useState<IProduct[]>([]);
+  const [showImage, setShowImage] = useState<boolean>(false);
+  // const [searchData, setSearchData] = useState<IProduct[]>([]);
   const [searchValue, setSearchValue] = useState<string>('');
-  const [data, setData] = useState<IProduct[]>(listProducts);
-  const [total, setTotal] = useState<number>(listProducts.length);
+  const [data, setData] = useState<IProduct[]>([]);
+  const [total, setTotal] = useState<number>(0);
   const [page, setPage] = useState<number>(0);
   const [limit, setLimit] = useState<number>(5);
 
@@ -66,25 +66,69 @@ const RecentOrdersTable: FC<ListProductsTableProps> = ({ listProducts }) => {
     setSearchValue(q);
   };
 
-  const handleSelectAllCryptoOrders = (
+  const handleGetData = useCallback(() => {
+    axiosInstance({
+      url: 'v1/products',
+      headers: {
+        Authorization: 'Bearer ' + localStorage.getItem('accessToken')
+      },
+      params: {
+        page: page + 1,
+        limit
+      }
+    })
+      .then((res) => {
+        setData(res.data.results);
+        setTotal(res.data.totalResults);
+      })
+      .catch((e) => {
+        console.log(e);
+      });
+  }, [page, limit]);
+
+  const handleDeleteProduct = (id: string) => {
+    axiosInstance({
+      method: 'DELETE',
+      url: 'v1/products/' + id,
+      headers: {
+        Authorization: 'Bearer ' + localStorage.getItem('accessToken')
+      }
+    })
+      .then((res) => {
+        if (res.status === 204) {
+          alert('Xoá sản phẩm thành công!');
+          handleGetData();
+        } else {
+          alert('Xoá sản phẩm thất bại');
+        }
+      })
+      .catch((e) => {
+        console.log(e);
+        alert('Đã có lỗi xảy ra!');
+      });
+  };
+
+  useEffect(() => {
+    handleGetData();
+  }, [page, limit]);
+
+  const handleSelectAllProducts = (
     event: ChangeEvent<HTMLInputElement>
   ): void => {
     setSelectedProducts(
-      event.target.checked
-        ? listProducts.map((cryptoOrder) => cryptoOrder.id)
-        : []
+      event.target.checked ? data.map((product) => product.id) : []
     );
   };
 
-  const handleSelectOneCryptoOrder = (
+  const handleSelectOneProduct = (
     _event: ChangeEvent<HTMLInputElement>,
-    cryptoOrderId: string
+    productId: string
   ): void => {
-    if (!selectedProducts.includes(cryptoOrderId)) {
-      setSelectedProducts((prevSelected) => [...prevSelected, cryptoOrderId]);
+    if (!selectedProducts.includes(productId)) {
+      setSelectedProducts((prevSelected) => [...prevSelected, productId]);
     } else {
       setSelectedProducts((prevSelected) =>
-        prevSelected.filter((id) => id !== cryptoOrderId)
+        prevSelected.filter((id) => id !== productId)
       );
     }
   };
@@ -97,11 +141,9 @@ const RecentOrdersTable: FC<ListProductsTableProps> = ({ listProducts }) => {
     setLimit(parseInt(event.target.value));
   };
 
-  const selectedSomeCryptoOrders =
-    selectedProducts.length > 0 &&
-    selectedProducts.length < listProducts.length;
-  const selectedAllCryptoOrders =
-    selectedProducts.length === listProducts.length;
+  const selectedSomeProducts =
+    selectedProducts.length > 0 && selectedProducts.length < data.length;
+  const selectedAllProducts = selectedProducts.length === data.length;
   const theme = useTheme();
   const fullScreen = useMediaQuery(theme.breakpoints.down('md'));
 
@@ -204,9 +246,9 @@ const RecentOrdersTable: FC<ListProductsTableProps> = ({ listProducts }) => {
               <TableCell padding="checkbox">
                 <Checkbox
                   color="primary"
-                  checked={selectedAllCryptoOrders}
-                  indeterminate={selectedSomeCryptoOrders}
-                  onChange={handleSelectAllCryptoOrders}
+                  checked={selectedAllProducts}
+                  indeterminate={selectedSomeProducts}
+                  onChange={handleSelectAllProducts}
                 />
               </TableCell>
               <TableCell>Tên sản phẩm</TableCell>
@@ -218,23 +260,17 @@ const RecentOrdersTable: FC<ListProductsTableProps> = ({ listProducts }) => {
           </TableHead>
           <TableBody>
             {data.map((product) => {
-              const isCryptoOrderSelected = selectedProducts.includes(
-                product.id
-              );
+              const isProductSelected = selectedProducts.includes(product.id);
               return (
-                <TableRow
-                  hover
-                  key={product.id}
-                  selected={isCryptoOrderSelected}
-                >
+                <TableRow hover key={product.id} selected={isProductSelected}>
                   <TableCell padding="checkbox">
                     <Checkbox
                       color="primary"
-                      checked={isCryptoOrderSelected}
+                      checked={isProductSelected}
                       onChange={(event: ChangeEvent<HTMLInputElement>) =>
-                        handleSelectOneCryptoOrder(event, product.id)
+                        handleSelectOneProduct(event, product.id)
                       }
-                      value={isCryptoOrderSelected}
+                      value={isProductSelected}
                     />
                   </TableCell>
                   <TableCell>
@@ -251,16 +287,35 @@ const RecentOrdersTable: FC<ListProductsTableProps> = ({ listProducts }) => {
                       {product.type}
                     </Typography>
                   </TableCell>
-                  <TableCell>
-                    <Typography
-                      variant="body1"
-                      fontWeight="bold"
-                      color="text.primary"
-                      gutterBottom
-                      noWrap
-                    >
-                      {product.image}
-                    </Typography>
+                  <TableCell sx={{ maxWidth: 100 }}>
+                    {showImage ? (
+                      !fullScreen ? (
+                        <img
+                          onClick={() => setShowImage(false)}
+                          src={product.image}
+                          alt={'Product image'}
+                          width={'100%'}
+                        />
+                      ) : (
+                        <img src={product.image} width={'150%'} />
+                      )
+                    ) : (
+                      <Tooltip title="Xem ảnh" arrow>
+                        <IconButton
+                          onClick={() => setShowImage(true)}
+                          sx={{
+                            '&:hover': {
+                              background: theme.colors.primary.lighter
+                            },
+                            color: theme.palette.primary.main
+                          }}
+                          color="inherit"
+                          size="small"
+                        >
+                          <RemoveRedEyeOutlined fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                    )}
                   </TableCell>
                   <TableCell>
                     <Typography
@@ -285,7 +340,7 @@ const RecentOrdersTable: FC<ListProductsTableProps> = ({ listProducts }) => {
                     </Typography>
                   </TableCell>
                   <TableCell align="right">
-                    <Tooltip title="Edit Order" arrow>
+                    <Tooltip title="Sửa" arrow>
                       <IconButton
                         sx={{
                           '&:hover': {
@@ -299,8 +354,12 @@ const RecentOrdersTable: FC<ListProductsTableProps> = ({ listProducts }) => {
                         <EditTwoToneIcon fontSize="small" />
                       </IconButton>
                     </Tooltip>
-                    <Tooltip title="Delete Order" arrow>
+                    <Tooltip title="Xoá" arrow>
                       <IconButton
+                        onClick={() =>
+                          confirm('Bạn có muốn xoá sản phẩm này ?') &&
+                          handleDeleteProduct(product.id)
+                        }
                         sx={{
                           '&:hover': { background: theme.colors.error.lighter },
                           color: theme.palette.error.main
@@ -320,6 +379,12 @@ const RecentOrdersTable: FC<ListProductsTableProps> = ({ listProducts }) => {
       </TableContainer>
       <Box p={2}>
         <TablePagination
+          labelRowsPerPage={'Số sản phẩm hiển thị'}
+          labelDisplayedRows={({ from, to, count }) => {
+            return `Sản phẩm thứ ${from} đến ${to} trong số ${
+              count !== -1 ? `${count} sản phẩm` : `more than ${to}`
+            }`;
+          }}
           component="div"
           count={total}
           onPageChange={handlePageChange}
@@ -362,7 +427,6 @@ const RecentOrdersTable: FC<ListProductsTableProps> = ({ listProducts }) => {
             variant="standard"
           />
           <TextField
-            autoFocus
             margin="dense"
             label="Đơn giá"
             type="text"
@@ -370,7 +434,6 @@ const RecentOrdersTable: FC<ListProductsTableProps> = ({ listProducts }) => {
             variant="standard"
           />
           <TextField
-            autoFocus
             margin="dense"
             label="Màu sắc"
             type="text"
@@ -378,7 +441,6 @@ const RecentOrdersTable: FC<ListProductsTableProps> = ({ listProducts }) => {
             variant="standard"
           />
           <TextField
-            autoFocus
             margin="dense"
             label="Loại sản phẩm"
             type="text"
@@ -393,14 +455,6 @@ const RecentOrdersTable: FC<ListProductsTableProps> = ({ listProducts }) => {
       </Dialog>
     </Card>
   );
-};
-
-RecentOrdersTable.propTypes = {
-  listProducts: PropTypes.array.isRequired
-};
-
-RecentOrdersTable.defaultProps = {
-  listProducts: []
 };
 
 export default RecentOrdersTable;

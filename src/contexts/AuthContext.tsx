@@ -53,7 +53,7 @@ const AuthProvider: React.FC<Props> = ({ children }) => {
         setLoading(true);
         try {
           const response = await axios.post(
-            'http://192.168.31.238:3010/v1/auth/refresh-tokens',
+            process.env.API_URL + 'v1/auth/refresh-tokens',
             {
               refreshToken
             }
