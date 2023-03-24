@@ -32,6 +32,7 @@ import DeleteTwoToneIcon from '@mui/icons-material/DeleteTwoTone';
 import RemoveRedEyeOutlined from '@mui/icons-material/RemoveRedEyeOutlined';
 import { IProduct } from '@/models/product';
 import axiosInstance from '@/config/api';
+import { Controller, useForm } from 'react-hook-form';
 
 interface ListProductsTableProps {
   className?: string;
@@ -49,11 +50,23 @@ const RecentOrdersTable: FC<ListProductsTableProps> = () => {
   const [limit, setLimit] = useState<number>(5);
 
   //Add Dialog State
+  const { control, handleSubmit, reset } = useForm({
+    mode: 'onBlur',
+    defaultValues: {
+      name: '',
+      type: '',
+      color: '',
+      price: 0,
+      image:
+        'https://product.hstatic.net/1000096703/product/hma00111_0cb33baa0f554dcd872d415e861d0855_master.jpg'
+    }
+  });
   const [imagePreview, setImagePreview] = useState<string>('');
   const [openAddProductDialog, setOpenAddProductDialog] =
     useState<boolean>(false);
 
   const handleCloseAddProductDialog = () => {
+    reset();
     setOpenAddProductDialog(false);
     setImagePreview('');
   };
@@ -85,6 +98,31 @@ const RecentOrdersTable: FC<ListProductsTableProps> = () => {
         console.log(e);
       });
   }, [page, limit]);
+
+  const onSubmit = (data) => {
+    handleCloseAddProductDialog();
+    console.log(data);
+    axiosInstance({
+      method: 'POST',
+      url: 'v1/products',
+      headers: {
+        Authorization: 'Bearer ' + localStorage.getItem('accessToken')
+      },
+      data
+    })
+      .then((res) => {
+        if (res.status === 201) {
+          alert('Thêm sản phẩm thành công!');
+          handleGetData();
+        } else {
+          alert('Thêm sản phẩm thất bại!');
+        }
+      })
+      .catch((e) => {
+        console.log(e);
+        alert('Server error');
+      });
+  };
 
   const handleDeleteProduct = (id: string) => {
     axiosInstance({
@@ -400,58 +438,100 @@ const RecentOrdersTable: FC<ListProductsTableProps> = () => {
         onClose={handleCloseAddProductDialog}
       >
         <DialogTitle>Thêm sản phẩm</DialogTitle>
-        <DialogContent>
-          <ImageWrapper sx={{ margin: imagePreview ? 0 : 10 }}>
-            <img src={imagePreview} width={'100%'} />
-            <ButtonUploadWrapper>
-              <Input
-                accept="image/*"
-                id="icon-button-file"
-                name="icon-button-file"
-                type="file"
-                onChange={handleChangeImage}
-              />
-              <label htmlFor="icon-button-file">
-                <IconButton component="span" color="primary">
-                  <UploadTwoToneIcon />
-                </IconButton>
-              </label>
-            </ButtonUploadWrapper>
-          </ImageWrapper>
-          <TextField
-            autoFocus
-            margin="dense"
-            label="Tên sản phẩm"
-            type="text"
-            fullWidth
-            variant="standard"
-          />
-          <TextField
-            margin="dense"
-            label="Đơn giá"
-            type="text"
-            fullWidth
-            variant="standard"
-          />
-          <TextField
-            margin="dense"
-            label="Màu sắc"
-            type="text"
-            fullWidth
-            variant="standard"
-          />
-          <TextField
-            margin="dense"
-            label="Loại sản phẩm"
-            type="text"
-            fullWidth
-            variant="standard"
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseAddProductDialog}>Huỷ bỏ</Button>
-          <Button onClick={handleCloseAddProductDialog}>Thêm</Button>
-        </DialogActions>
+        <form noValidate onSubmit={handleSubmit(onSubmit)} autoComplete={'off'}>
+          <DialogContent>
+            <ImageWrapper sx={{ margin: imagePreview ? 0 : 10 }}>
+              <img src={imagePreview} width={'100%'} />
+              <ButtonUploadWrapper>
+                <Input
+                  accept="image/*"
+                  id="icon-button-file"
+                  name="icon-button-file"
+                  type="file"
+                  onChange={handleChangeImage}
+                />
+                <label htmlFor="icon-button-file">
+                  <IconButton component="span" color="primary">
+                    <UploadTwoToneIcon />
+                  </IconButton>
+                </label>
+              </ButtonUploadWrapper>
+            </ImageWrapper>
+            <Controller
+              name="name"
+              control={control}
+              rules={{ required: true }}
+              render={({ field: { value, onChange, onBlur } }) => (
+                <TextField
+                  value={value}
+                  onChange={onChange}
+                  onBlur={onBlur}
+                  autoFocus
+                  margin="dense"
+                  label="Tên sản phẩm"
+                  type="text"
+                  fullWidth
+                  variant="standard"
+                />
+              )}
+            />
+            <Controller
+              name="price"
+              control={control}
+              rules={{ required: true }}
+              render={({ field: { value, onChange, onBlur } }) => (
+                <TextField
+                  value={value}
+                  onChange={onChange}
+                  onBlur={onBlur}
+                  margin="dense"
+                  label="Đơn giá"
+                  type="number"
+                  fullWidth
+                  variant="standard"
+                />
+              )}
+            />
+            <Controller
+              name="color"
+              control={control}
+              rules={{ required: true }}
+              render={({ field: { value, onChange, onBlur } }) => (
+                <TextField
+                  value={value}
+                  onChange={onChange}
+                  onBlur={onBlur}
+                  margin="dense"
+                  label="Màu sắc"
+                  type="text"
+                  fullWidth
+                  variant="standard"
+                />
+              )}
+            />
+            <Controller
+              name="type"
+              control={control}
+              rules={{ required: true }}
+              render={({ field: { value, onChange, onBlur } }) => (
+                <TextField
+                  value={value}
+                  onChange={onChange}
+                  onBlur={onBlur}
+                  margin="dense"
+                  label="Loại sản phẩm"
+                  type="text"
+                  fullWidth
+                  variant="standard"
+                />
+              )}
+            />
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleCloseAddProductDialog}>Huỷ bỏ</Button>
+            <Button type="submit">Thêm</Button>
+          </DialogActions>
+        </form>
       </Dialog>
     </Card>
   );
