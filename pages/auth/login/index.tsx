@@ -28,7 +28,6 @@ import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { Controller, useForm } from 'react-hook-form';
 import { LoadingButton } from '@mui/lab';
-import { useRouter } from 'next/router';
 import { useAuth } from '@/hook/useAuth';
 const MainContent = styled(Box)(
   () => `
@@ -57,7 +56,7 @@ function AuthLogin() {
   const auth = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setLoading] = useState(false);
-  const router = useRouter();
+  //const router = useRouter();
   const {
     control,
     handleSubmit,
