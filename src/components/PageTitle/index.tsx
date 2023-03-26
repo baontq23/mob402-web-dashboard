@@ -1,7 +1,6 @@
 import { FC } from 'react';
 import PropTypes from 'prop-types';
-import AddTwoToneIcon from '@mui/icons-material/AddTwoTone';
-import { Typography, Button, Grid } from '@mui/material';
+import { Typography, Grid } from '@mui/material';
 
 interface PageTitleProps {
   heading?: string;
@@ -27,18 +26,6 @@ const PageTitle: FC<PageTitleProps> = ({
           {heading}
         </Typography>
         <Typography variant="subtitle2">{subHeading}</Typography>
-      </Grid>
-      <Grid item>
-        <Button
-          href={docs}
-          target="_blank"
-          rel="noopener noreferrer"
-          sx={{ mt: { xs: 2, md: 0 } }}
-          variant="contained"
-          startIcon={<AddTwoToneIcon fontSize="small" />}
-        >
-          {heading} Documentation
-        </Button>
       </Grid>
     </Grid>
   );
