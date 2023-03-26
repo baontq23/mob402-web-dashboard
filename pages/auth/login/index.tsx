@@ -29,6 +29,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import { Controller, useForm } from 'react-hook-form';
 import { LoadingButton } from '@mui/lab';
 import { useAuth } from '@/hook/useAuth';
+import Link from '@/components/Link';
 const MainContent = styled(Box)(
   () => `
       height: 100%;
@@ -76,6 +77,7 @@ function AuthLogin() {
     setTimeout(() => {
       auth.login(data, () => {
         setError('email', { message: 'Thông tin đăng nhập không chính xác!' });
+        setLoading(false);
       });
     }, 1);
   };
@@ -167,7 +169,6 @@ function AuthLogin() {
                         </FormHelperText>
                       )}
                     </FormControl>
-
                     <LoadingButton
                       fullWidth
                       size="large"
@@ -179,6 +180,7 @@ function AuthLogin() {
                       Login
                     </LoadingButton>
                   </form>
+                  <Link href={'/auth/register'}>Đăng ký</Link>
                 </Grid>
               </Grid>
             </Box>
