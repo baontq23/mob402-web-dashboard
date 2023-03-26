@@ -33,12 +33,14 @@ import RemoveRedEyeOutlined from '@mui/icons-material/RemoveRedEyeOutlined';
 import { IProduct } from '@/models/product';
 import axiosInstance from '@/config/api';
 import { Controller, useForm } from 'react-hook-form';
+import { useRouter } from 'next/router';
 
 interface ListProductsTableProps {
   className?: string;
 }
 
 const RecentOrdersTable: FC<ListProductsTableProps> = () => {
+  const route = useRouter();
   const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
   const selectedBulkActions = selectedProducts.length > 0;
   const [showImage, setShowImage] = useState<boolean>(false);
@@ -56,23 +58,21 @@ const RecentOrdersTable: FC<ListProductsTableProps> = () => {
       name: '',
       type: '',
       color: '',
-      price: 0,
-      image:
-        'https://product.hstatic.net/1000096703/product/hma00111_0cb33baa0f554dcd872d415e861d0855_master.jpg'
+      price: 0
     }
   });
-  const [imagePreview, setImagePreview] = useState<string>('');
+  const [imagePreview, setImagePreview] = useState<File>(null);
   const [openAddProductDialog, setOpenAddProductDialog] =
     useState<boolean>(false);
 
   const handleCloseAddProductDialog = () => {
     reset();
     setOpenAddProductDialog(false);
-    setImagePreview('');
+    setImagePreview(null);
   };
 
   const handleChangeImage = (e: ChangeEvent<HTMLInputElement>) => {
-    setImagePreview(URL.createObjectURL(e.target.files[0]));
+    setImagePreview(e.target.files[0]);
   };
 
   const handleSearch = (q: string) => {
@@ -100,15 +100,22 @@ const RecentOrdersTable: FC<ListProductsTableProps> = () => {
   }, [page, limit]);
 
   const onSubmit = (data) => {
+    const formData = new FormData();
+    formData.append('name', data.name);
+    formData.append('type', data.type);
+    formData.append('color', data.color);
+    formData.append('price', data.price);
+    formData.append('image', imagePreview, Date.now() + imagePreview.name);
+
     handleCloseAddProductDialog();
-    console.log(data);
     axiosInstance({
       method: 'POST',
       url: 'v1/products',
       headers: {
-        Authorization: 'Bearer ' + localStorage.getItem('accessToken')
+        Authorization: 'Bearer ' + localStorage.getItem('accessToken'),
+        'Content-Type': 'multipart/form-data'
       },
-      data
+      data: formData
     })
       .then((res) => {
         if (res.status === 201) {
@@ -330,12 +337,12 @@ const RecentOrdersTable: FC<ListProductsTableProps> = () => {
                       !fullScreen ? (
                         <img
                           onClick={() => setShowImage(false)}
-                          src={product.image}
+                          src={product.image_link}
                           alt={'Product image'}
                           width={'100%'}
                         />
                       ) : (
-                        <img src={product.image} width={'150%'} />
+                        <img src={product.image_link} width={'150%'} />
                       )
                     ) : (
                       <Tooltip title="Xem ảnh" arrow>
@@ -380,6 +387,9 @@ const RecentOrdersTable: FC<ListProductsTableProps> = () => {
                   <TableCell align="right">
                     <Tooltip title="Sửa" arrow>
                       <IconButton
+                        onClick={() =>
+                          route.push(`/management/list-products/${product.id}`)
+                        }
                         sx={{
                           '&:hover': {
                             background: theme.colors.primary.lighter
@@ -441,7 +451,10 @@ const RecentOrdersTable: FC<ListProductsTableProps> = () => {
         <form noValidate onSubmit={handleSubmit(onSubmit)} autoComplete={'off'}>
           <DialogContent>
             <ImageWrapper sx={{ margin: imagePreview ? 0 : 10 }}>
-              <img src={imagePreview} width={'100%'} />
+              <img
+                src={imagePreview ? URL.createObjectURL(imagePreview) : ''}
+                width={'100%'}
+              />
               <ButtonUploadWrapper>
                 <Input
                   accept="image/*"
