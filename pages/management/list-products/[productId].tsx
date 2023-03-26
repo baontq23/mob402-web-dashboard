@@ -1,7 +1,7 @@
 import Head from 'next/head';
 import SidebarLayout from '@/layouts/SidebarLayout';
 import PageTitle from '@/components/PageTitle';
-import { ChangeEvent, useCallback, useEffect, useState } from 'react';
+import { ChangeEvent, useEffect, useState } from 'react';
 
 import PageTitleWrapper from '@/components/PageTitleWrapper';
 import {
