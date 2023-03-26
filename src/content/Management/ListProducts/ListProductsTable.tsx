@@ -105,7 +105,8 @@ const RecentOrdersTable: FC<ListProductsTableProps> = () => {
     formData.append('type', data.type);
     formData.append('color', data.color);
     formData.append('price', data.price);
-    formData.append('image', imagePreview, Date.now() + imagePreview.name);
+    imagePreview &&
+      formData.append('image', imagePreview, Date.now() + imagePreview.name);
 
     handleCloseAddProductDialog();
     axiosInstance({
@@ -275,6 +276,7 @@ const RecentOrdersTable: FC<ListProductsTableProps> = () => {
               <FormControl fullWidth variant="outlined">
                 <TextField
                   value={searchValue}
+                  type="search"
                   onChange={(e) => handleSearch(e.target.value)}
                   label={'Search'}
                 />
@@ -342,7 +344,12 @@ const RecentOrdersTable: FC<ListProductsTableProps> = () => {
                           width={'100%'}
                         />
                       ) : (
-                        <img src={product.image_link} width={'150%'} />
+                        <img
+                          onClick={() => setShowImage(false)}
+                          src={product.image_link}
+                          alt={'Product image'}
+                          width={'150%'}
+                        />
                       )
                     ) : (
                       <Tooltip title="Xem ảnh" arrow>
