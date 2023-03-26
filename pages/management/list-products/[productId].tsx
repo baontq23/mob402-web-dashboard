@@ -160,7 +160,7 @@ const EditProduct = () => {
                   onSubmit={handleSubmit(onSubmit)}
                 >
                   <div>
-                    <ImageWrapper>
+                    <ImageWrapper sx={{ m: currentImage ? 0 : 5 }}>
                       <img
                         src={
                           imagePreview
