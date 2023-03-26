@@ -25,10 +25,12 @@ import DeleteTwoToneIcon from '@mui/icons-material/DeleteTwoTone';
 import RemoveRedEyeOutlined from '@mui/icons-material/RemoveRedEyeOutlined';
 import { IProduct } from '@/models/product';
 import axiosInstance from '@/config/api';
+import { useRouter } from 'next/router';
 
 interface ListProductsTableProps {}
 
 const RecentOrdersTable: FC<ListProductsTableProps> = () => {
+  const route = useRouter();
   const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
   const selectedBulkActions = selectedProducts.length > 0;
   const [showImage, setShowImage] = useState<boolean>(false);
@@ -222,14 +224,14 @@ const RecentOrdersTable: FC<ListProductsTableProps> = () => {
                       !fullScreen ? (
                         <img
                           onClick={() => setShowImage(false)}
-                          src={product.image}
+                          src={product.image_link}
                           alt={'Product image'}
                           width={'100%'}
                         />
                       ) : (
                         <img
                           onClick={() => setShowImage(false)}
-                          src={product.image}
+                          src={product.image_link}
                           width={'150%'}
                         />
                       )
@@ -287,6 +289,9 @@ const RecentOrdersTable: FC<ListProductsTableProps> = () => {
                   <TableCell align="right">
                     <Tooltip title="Sửa" arrow>
                       <IconButton
+                        onClick={() =>
+                          route.push(`/management/list-products/${product.id}`)
+                        }
                         sx={{
                           '&:hover': {
                             background: theme.colors.primary.lighter
