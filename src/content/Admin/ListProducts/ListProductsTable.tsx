@@ -16,7 +16,6 @@ import {
   Typography,
   useTheme,
   TextField,
-  Button,
   useMediaQuery
 } from '@mui/material';
 import EditTwoToneIcon from '@mui/icons-material/EditTwoTone';
@@ -109,6 +108,7 @@ const RecentOrdersTable: FC<ListProductsTableProps> = () => {
               value={searchValue}
               onChange={(e) => handleSearch(e.target.value)}
               label={'Search'}
+              type={'search'}
             />
           </FormControl>
         </Box>
