@@ -23,7 +23,8 @@ import {
   Dialog,
   DialogTitle,
   DialogContent,
-  DialogActions
+  DialogActions,
+  FormHelperText
 } from '@mui/material';
 import AddTwoToneIcon from '@mui/icons-material/AddTwoTone';
 import EditTwoToneIcon from '@mui/icons-material/EditTwoTone';
@@ -34,12 +35,20 @@ import { IProduct } from '@/models/product';
 import axiosInstance from '@/config/api';
 import { Controller, useForm } from 'react-hook-form';
 import { useRouter } from 'next/router';
-
+import * as yup from 'yup';
+import { yupResolver } from '@hookform/resolvers/yup';
 interface ListProductsTableProps {
   className?: string;
 }
 
-const RecentOrdersTable: FC<ListProductsTableProps> = () => {
+const schema = yup.object().shape({
+  name: yup.string().required(),
+  price: yup.number().min(0).required(),
+  color: yup.string().required(),
+  type: yup.string().required()
+});
+
+const ListProductsTable: FC<ListProductsTableProps> = () => {
   const route = useRouter();
   const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
   const selectedBulkActions = selectedProducts.length > 0;
@@ -52,8 +61,14 @@ const RecentOrdersTable: FC<ListProductsTableProps> = () => {
   const [limit, setLimit] = useState<number>(5);
 
   //Add Dialog State
-  const { control, handleSubmit, reset } = useForm({
+  const {
+    control,
+    handleSubmit,
+    reset,
+    formState: { errors }
+  } = useForm({
     mode: 'onBlur',
+    resolver: yupResolver(schema),
     defaultValues: {
       name: '',
       type: '',
@@ -491,10 +506,16 @@ const RecentOrdersTable: FC<ListProductsTableProps> = () => {
                   label="Tên sản phẩm"
                   type="text"
                   fullWidth
+                  error={!!errors.name}
                   variant="standard"
                 />
               )}
             />
+            {errors.name && (
+              <FormHelperText sx={{ color: 'error.main' }}>
+                {errors.name.message}
+              </FormHelperText>
+            )}
             <Controller
               name="price"
               control={control}
@@ -507,11 +528,18 @@ const RecentOrdersTable: FC<ListProductsTableProps> = () => {
                   margin="dense"
                   label="Đơn giá"
                   type="number"
+                  error={!!errors.price}
+                  InputProps={{ inputProps: { min: 0 } }}
                   fullWidth
                   variant="standard"
                 />
               )}
             />
+            {errors.price && (
+              <FormHelperText sx={{ color: 'error.main' }}>
+                {errors.price.message}
+              </FormHelperText>
+            )}
             <Controller
               name="color"
               control={control}
@@ -523,12 +551,18 @@ const RecentOrdersTable: FC<ListProductsTableProps> = () => {
                   onBlur={onBlur}
                   margin="dense"
                   label="Màu sắc"
+                  error={!!errors.color}
                   type="text"
                   fullWidth
                   variant="standard"
                 />
               )}
             />
+            {errors.color && (
+              <FormHelperText sx={{ color: 'error.main' }}>
+                {errors.color.message}
+              </FormHelperText>
+            )}
             <Controller
               name="type"
               control={control}
@@ -541,11 +575,17 @@ const RecentOrdersTable: FC<ListProductsTableProps> = () => {
                   margin="dense"
                   label="Loại sản phẩm"
                   type="text"
+                  error={!!errors.type}
                   fullWidth
                   variant="standard"
                 />
               )}
             />
+            {errors.type && (
+              <FormHelperText sx={{ color: 'error.main' }}>
+                {errors.type.message}
+              </FormHelperText>
+            )}
           </DialogContent>
           <DialogActions>
             <Button onClick={handleCloseAddProductDialog}>Huỷ bỏ</Button>
@@ -557,4 +597,4 @@ const RecentOrdersTable: FC<ListProductsTableProps> = () => {
   );
 };
 
-export default RecentOrdersTable;
+export default ListProductsTable;
