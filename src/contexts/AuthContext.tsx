@@ -13,6 +13,7 @@ type UserDataType = {
   name: string;
   email: string;
   avatar: string | null;
+  avatar_link: string;
   role: string;
   isEmailVerified: boolean;
 };
