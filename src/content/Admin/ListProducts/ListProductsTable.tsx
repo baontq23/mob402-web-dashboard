@@ -5,7 +5,6 @@ import {
   Box,
   FormControl,
   Card,
-  Checkbox,
   IconButton,
   Table,
   TableBody,
@@ -31,8 +30,6 @@ interface ListProductsTableProps {}
 
 const RecentOrdersTable: FC<ListProductsTableProps> = () => {
   const route = useRouter();
-  const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
-  const selectedBulkActions = selectedProducts.length > 0;
   const [showImage, setShowImage] = useState<boolean>(false);
   //const [searchData, setSearchData] = useState<IProduct[]>([]);
   const [searchValue, setSearchValue] = useState<string>('');
@@ -92,27 +89,6 @@ const RecentOrdersTable: FC<ListProductsTableProps> = () => {
     handleGetData();
   }, [page, limit]);
 
-  const handleSelectAllProducts = (
-    event: ChangeEvent<HTMLInputElement>
-  ): void => {
-    setSelectedProducts(
-      event.target.checked ? data.map((product) => product.id) : []
-    );
-  };
-
-  const handleSelectOneProduct = (
-    _event: ChangeEvent<HTMLInputElement>,
-    productId: string
-  ): void => {
-    if (!selectedProducts.includes(productId)) {
-      setSelectedProducts((prevSelected) => [...prevSelected, productId]);
-    } else {
-      setSelectedProducts((prevSelected) =>
-        prevSelected.filter((id) => id !== productId)
-      );
-    }
-  };
-
   const handlePageChange = (_event: any, newPage: number): void => {
     setPage(newPage);
   };
@@ -121,67 +97,27 @@ const RecentOrdersTable: FC<ListProductsTableProps> = () => {
     setLimit(parseInt(event.target.value));
   };
 
-  const selectedSomeProducts =
-    selectedProducts.length > 0 && selectedProducts.length < data.length;
-  const selectedAllProducts = selectedProducts.length === data.length;
   const theme = useTheme();
   const fullScreen = useMediaQuery(theme.breakpoints.down('md'));
 
   return (
     <Card>
-      {selectedBulkActions && (
-        <Box flex={1} p={2}>
-          <Box
-            display="flex"
-            alignItems="center"
-            justifyContent="space-between"
-          >
-            <Box display="flex" alignItems="center">
-              <Typography variant="h5" color="text.secondary">
-                Thao tác hàng loạt:
-              </Typography>
-              <Button
-                color="error"
-                sx={{ ml: 1 }}
-                startIcon={<DeleteTwoToneIcon />}
-                variant="contained"
-              >
-                Xoá
-              </Button>
-            </Box>
-          </Box>
+      <Box flex={1} p={2}>
+        <Box display="flex" alignItems="center" justifyContent="space-between">
+          <FormControl fullWidth variant="outlined">
+            <TextField
+              value={searchValue}
+              onChange={(e) => handleSearch(e.target.value)}
+              label={'Search'}
+            />
+          </FormControl>
         </Box>
-      )}
-      {!selectedBulkActions && (
-        <Box flex={1} p={2}>
-          <Box
-            display="flex"
-            alignItems="center"
-            justifyContent="space-between"
-          >
-            <FormControl fullWidth variant="outlined">
-              <TextField
-                value={searchValue}
-                onChange={(e) => handleSearch(e.target.value)}
-                label={'Search'}
-              />
-            </FormControl>
-          </Box>
-        </Box>
-      )}
+      </Box>
       <Divider />
       <TableContainer>
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell padding="checkbox">
-                <Checkbox
-                  color="primary"
-                  checked={selectedAllProducts}
-                  indeterminate={selectedSomeProducts}
-                  onChange={handleSelectAllProducts}
-                />
-              </TableCell>
               <TableCell>Tên sản phẩm</TableCell>
               <TableCell>Ảnh</TableCell>
               <TableCell>Màu sắc</TableCell>
@@ -192,19 +128,8 @@ const RecentOrdersTable: FC<ListProductsTableProps> = () => {
           </TableHead>
           <TableBody>
             {data.map((product) => {
-              const isProductSelected = selectedProducts.includes(product.id);
               return (
-                <TableRow hover key={product.id} selected={isProductSelected}>
-                  <TableCell padding="checkbox">
-                    <Checkbox
-                      color="primary"
-                      checked={isProductSelected}
-                      onChange={(event: ChangeEvent<HTMLInputElement>) =>
-                        handleSelectOneProduct(event, product.id)
-                      }
-                      value={isProductSelected}
-                    />
-                  </TableCell>
+                <TableRow hover key={product.id}>
                   <TableCell>
                     <Typography
                       variant="body1"

@@ -5,7 +5,6 @@ import {
   Box,
   FormControl,
   Card,
-  Checkbox,
   IconButton,
   Table,
   TableBody,
@@ -39,33 +38,12 @@ const getStatusLabel = (userEmailVerifiedStatus: boolean): JSX.Element => {
 
 const ListUsersTable: FC<RecentOrdersTableProps> = ({ users }) => {
   const [data] = useState<IUser[]>(users);
-  const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
-  const selectedBulkActions = selectedUsers.length > 0;
   const [page, setPage] = useState<number>(0);
   const [limit, setLimit] = useState<number>(5);
 
   const [searchValue, setSearchValue] = useState<string>('');
   const handleSearch = (q: string) => {
     setSearchValue(q);
-  };
-
-  const handleSelectAllCryptoOrders = (
-    event: ChangeEvent<HTMLInputElement>
-  ): void => {
-    setSelectedUsers(event.target.checked ? data.map((user) => user.id) : []);
-  };
-
-  const handleSelectOneUser = (
-    _event: ChangeEvent<HTMLInputElement>,
-    cryptoOrderId: string
-  ): void => {
-    if (!selectedUsers.includes(cryptoOrderId)) {
-      setSelectedUsers((prevSelected) => [...prevSelected, cryptoOrderId]);
-    } else {
-      setSelectedUsers((prevSelected) =>
-        prevSelected.filter((id) => id !== cryptoOrderId)
-      );
-    }
   };
 
   const handlePageChange = (_event: any, newPage: number): void => {
@@ -76,75 +54,36 @@ const ListUsersTable: FC<RecentOrdersTableProps> = ({ users }) => {
     setLimit(parseInt(event.target.value));
   };
 
-  const selectedSomeCryptoOrders =
-    selectedUsers.length > 0 && selectedUsers.length < data.length;
-  const selectedAllCryptoOrders = selectedUsers.length === data.length;
   const theme = useTheme();
 
   return (
     <Card>
-      {selectedBulkActions && (
-        <Box flex={1} p={2}>
-          <Box
-            display="flex"
-            alignItems="center"
-            justifyContent="space-between"
+      <Box flex={1} p={2}>
+        <Box display="flex" alignItems="center" justifyContent="space-between">
+          <Button
+            sx={{ mr: 2 }}
+            variant="contained"
+            startIcon={<AddTwoToneIcon fontSize="small" />}
           >
-            <Box display="flex" alignItems="center">
-              <Typography variant="h5" color="text.secondary">
-                Thao tác hàng loạt:
-              </Typography>
-              <Button
-                color="error"
-                sx={{ ml: 1 }}
-                startIcon={<DeleteTwoToneIcon />}
-                variant="contained"
-              >
-                Xoá
-              </Button>
-            </Box>
-          </Box>
-        </Box>
-      )}
-      {!selectedBulkActions && (
-        <Box flex={1} p={2}>
-          <Box
-            display="flex"
-            alignItems="center"
-            justifyContent="space-between"
-          >
-            <Button
-              sx={{ mr: 2 }}
-              variant="contained"
-              startIcon={<AddTwoToneIcon fontSize="small" />}
-            >
-              Thêm người dùng
-            </Button>
+            Thêm người dùng
+          </Button>
 
-            <Box width={150}>
-              <FormControl fullWidth variant="outlined">
-                <TextField
-                  value={searchValue}
-                  onChange={(e) => handleSearch(e.target.value)}
-                  label={'Search'}
-                />
-              </FormControl>
-            </Box>
+          <Box width={150}>
+            <FormControl fullWidth variant="outlined">
+              <TextField
+                value={searchValue}
+                onChange={(e) => handleSearch(e.target.value)}
+                label={'Search'}
+              />
+            </FormControl>
           </Box>
         </Box>
-      )}
+      </Box>
+
       <TableContainer>
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell padding="checkbox">
-                <Checkbox
-                  color="primary"
-                  checked={selectedAllCryptoOrders}
-                  indeterminate={selectedSomeCryptoOrders}
-                  onChange={handleSelectAllCryptoOrders}
-                />
-              </TableCell>
               <TableCell>Họ tên và email</TableCell>
               <TableCell>Thời gian tạo</TableCell>
               <TableCell>Cập nhật gần đây</TableCell>
@@ -155,19 +94,8 @@ const ListUsersTable: FC<RecentOrdersTableProps> = ({ users }) => {
           </TableHead>
           <TableBody>
             {data.map((user) => {
-              const isCryptoOrderSelected = selectedUsers.includes(user.id);
               return (
-                <TableRow hover key={user.id} selected={isCryptoOrderSelected}>
-                  <TableCell padding="checkbox">
-                    <Checkbox
-                      color="primary"
-                      checked={isCryptoOrderSelected}
-                      onChange={(event: ChangeEvent<HTMLInputElement>) =>
-                        handleSelectOneUser(event, user.id)
-                      }
-                      value={isCryptoOrderSelected}
-                    />
-                  </TableCell>
+                <TableRow hover key={user.id}>
                   <TableCell>
                     <Typography
                       variant="body1"
