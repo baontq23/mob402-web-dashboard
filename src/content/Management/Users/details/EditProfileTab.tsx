@@ -13,6 +13,7 @@ import {
 
 import EditTwoToneIcon from '@mui/icons-material/EditTwoTone';
 import DoneTwoToneIcon from '@mui/icons-material/DoneTwoTone';
+import CloseTwoToneIcon from '@mui/icons-material/CloseTwoTone';
 import Text from '@/components/Text';
 import Label from '@/components/Label';
 import { useAuth } from '@/hook/useAuth';
@@ -62,7 +63,7 @@ const EditProfileTab: React.FC<Props> = () => {
                 </Grid>
                 <Grid item xs={12} sm={8} md={9}>
                   <Text color="black">
-                    <b>baontq23</b>
+                    <b>{auth.user.email}</b>
                   </Text>
                 </Grid>
 
@@ -72,10 +73,17 @@ const EditProfileTab: React.FC<Props> = () => {
                   </Box>
                 </Grid>
                 <Grid item xs={12} sm={8} md={9}>
-                  <Label color="success">
-                    <DoneTwoToneIcon fontSize="small" />
-                    <b>Verified</b>
-                  </Label>
+                  {auth.user.isEmailVerified ? (
+                    <Label color="success">
+                      <DoneTwoToneIcon fontSize="small" />
+                      <b>Verified</b>
+                    </Label>
+                  ) : (
+                    <Label color="warning">
+                      <CloseTwoToneIcon fontSize="small" />
+                      <b>Need Verify</b>
+                    </Label>
+                  )}
                 </Grid>
               </Grid>
             </Typography>
