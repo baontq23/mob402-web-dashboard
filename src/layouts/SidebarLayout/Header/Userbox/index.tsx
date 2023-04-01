@@ -57,7 +57,7 @@ const UserBoxDescription = styled(Typography)(
 `
 );
 
-function HeaderUserbox() {
+function HeaderUserBox() {
   const auth = useAuth();
 
   const ref = useRef<any>(null);
@@ -134,4 +134,4 @@ function HeaderUserbox() {
   );
 }
 
-export default HeaderUserbox;
+export default HeaderUserBox;
