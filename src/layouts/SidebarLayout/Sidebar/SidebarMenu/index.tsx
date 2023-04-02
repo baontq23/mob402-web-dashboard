@@ -17,6 +17,7 @@ import BrightnessLowTwoToneIcon from '@mui/icons-material/BrightnessLowTwoTone';
 import TableChartTwoToneIcon from '@mui/icons-material/TableChartTwoTone';
 import AccountCircleTwoToneIcon from '@mui/icons-material/AccountCircleTwoTone';
 import DisplaySettingsTwoToneIcon from '@mui/icons-material/DisplaySettingsTwoTone';
+import { useAuth } from '@/hook/useAuth';
 
 const MenuWrapper = styled(Box)(
   ({ theme }) => `
@@ -160,7 +161,8 @@ const SubMenuWrapper = styled(Box)(
 `
 );
 
-function SidebarMenu() {
+const SidebarMenu = () => {
+  const auth = useAuth();
   const { closeSidebar } = useContext(SidebarContext);
   const router = useRouter();
   const currentRoute = router.pathname;
@@ -224,52 +226,55 @@ function SidebarMenu() {
             </List>
           </SubMenuWrapper>
         </List>
-        <List
-          component="div"
-          subheader={
-            <ListSubheader component="div" disableSticky>
-              Administrator
-            </ListSubheader>
-          }
-        >
-          <SubMenuWrapper>
-            <List component="div">
-              <ListItem component="div">
-                <NextLink href="/admin/list-users" passHref>
-                  <Button
-                    className={
-                      currentRoute === '/admin/list-users' ? 'active' : ''
-                    }
-                    disableRipple
-                    component="a"
-                    onClick={closeSidebar}
-                    startIcon={<AccountCircleTwoToneIcon />}
-                  >
-                    Danh sách người dùng
-                  </Button>
-                </NextLink>
-              </ListItem>
-              <ListItem component="div">
-                <NextLink href="/admin/list-products" passHref>
-                  <Button
-                    className={
-                      currentRoute === '/admin/list-products' ? 'active' : ''
-                    }
-                    disableRipple
-                    component="a"
-                    onClick={closeSidebar}
-                    startIcon={<DisplaySettingsTwoToneIcon />}
-                  >
-                    Danh sách sản phẩm
-                  </Button>
-                </NextLink>
-              </ListItem>
-            </List>
-          </SubMenuWrapper>
-        </List>
+
+        {auth.user.role === 'admin' && (
+          <List
+            component="div"
+            subheader={
+              <ListSubheader component="div" disableSticky>
+                Administrator
+              </ListSubheader>
+            }
+          >
+            <SubMenuWrapper>
+              <List component="div">
+                <ListItem component="div">
+                  <NextLink href="/admin/list-users" passHref>
+                    <Button
+                      className={
+                        currentRoute === '/admin/list-users' ? 'active' : ''
+                      }
+                      disableRipple
+                      component="a"
+                      onClick={closeSidebar}
+                      startIcon={<AccountCircleTwoToneIcon />}
+                    >
+                      Danh sách người dùng
+                    </Button>
+                  </NextLink>
+                </ListItem>
+                <ListItem component="div">
+                  <NextLink href="/admin/list-products" passHref>
+                    <Button
+                      className={
+                        currentRoute === '/admin/list-products' ? 'active' : ''
+                      }
+                      disableRipple
+                      component="a"
+                      onClick={closeSidebar}
+                      startIcon={<DisplaySettingsTwoToneIcon />}
+                    >
+                      Danh sách sản phẩm
+                    </Button>
+                  </NextLink>
+                </ListItem>
+              </List>
+            </SubMenuWrapper>
+          </List>
+        )}
       </MenuWrapper>
     </>
   );
-}
+};
 
 export default SidebarMenu;
