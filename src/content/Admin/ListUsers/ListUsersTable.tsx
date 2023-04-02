@@ -1,5 +1,4 @@
-import { FC, ChangeEvent, useState } from 'react';
-import PropTypes from 'prop-types';
+import { FC, ChangeEvent, useState, useCallback, useEffect } from 'react';
 import {
   Tooltip,
   Box,
@@ -16,18 +15,20 @@ import {
   Typography,
   useTheme,
   TextField,
-  Button
+  Button,
+  useMediaQuery
 } from '@mui/material';
 
 import Label from '@/components/Label';
 import EditTwoToneIcon from '@mui/icons-material/EditTwoTone';
 import DeleteTwoToneIcon from '@mui/icons-material/DeleteTwoTone';
 import AddTwoToneIcon from '@mui/icons-material/AddTwoTone';
+import RemoveRedEyeOutlined from '@mui/icons-material/RemoveRedEyeOutlined';
 import { IUser } from '@/models/user';
+import axiosInstance from '@/config/api';
+import { useRouter } from 'next/router';
 
-interface RecentOrdersTableProps {
-  users: IUser[];
-}
+interface Props {}
 const getStatusLabel = (userEmailVerifiedStatus: boolean): JSX.Element => {
   return userEmailVerifiedStatus ? (
     <Label color={'success'}>{'Verified'}</Label>
@@ -36,15 +37,42 @@ const getStatusLabel = (userEmailVerifiedStatus: boolean): JSX.Element => {
   );
 };
 
-const ListUsersTable: FC<RecentOrdersTableProps> = ({ users }) => {
-  const [data] = useState<IUser[]>(users);
+const ListUsersTable: FC<Props> = () => {
+  const route = useRouter();
+  const [data, setData] = useState<IUser[]>([]);
   const [page, setPage] = useState<number>(0);
   const [limit, setLimit] = useState<number>(5);
+  const [total, setTotal] = useState<number>(0);
+  const [showImage, setShowImage] = useState<boolean>(false);
 
   const [searchValue, setSearchValue] = useState<string>('');
   const handleSearch = (q: string) => {
     setSearchValue(q);
   };
+
+  const handleGetData = useCallback(() => {
+    const params = searchValue
+      ? { name: searchValue, page: page + 1, limit }
+      : { page: page + 1, limit };
+    axiosInstance({
+      url: 'v1/users',
+      headers: {
+        Authorization: 'Bearer ' + localStorage.getItem('accessToken')
+      },
+      params
+    })
+      .then((res) => {
+        setData(res.data.results);
+        setTotal(res.data.totalResults);
+      })
+      .catch((e) => {
+        console.log(e);
+      });
+  }, [page, limit, searchValue]);
+
+  useEffect(() => {
+    handleGetData();
+  }, [page, limit, searchValue]);
 
   const handlePageChange = (_event: any, newPage: number): void => {
     setPage(newPage);
@@ -55,7 +83,7 @@ const ListUsersTable: FC<RecentOrdersTableProps> = ({ users }) => {
   };
 
   const theme = useTheme();
-
+  const fullScreen = useMediaQuery(theme.breakpoints.down('md'));
   return (
     <Card>
       <Box flex={1} p={2}>
@@ -74,6 +102,7 @@ const ListUsersTable: FC<RecentOrdersTableProps> = ({ users }) => {
                 value={searchValue}
                 onChange={(e) => handleSearch(e.target.value)}
                 label={'Search'}
+                type={'search'}
               />
             </FormControl>
           </Box>
@@ -85,8 +114,7 @@ const ListUsersTable: FC<RecentOrdersTableProps> = ({ users }) => {
           <TableHead>
             <TableRow>
               <TableCell>Họ tên và email</TableCell>
-              <TableCell>Thời gian tạo</TableCell>
-              <TableCell>Cập nhật gần đây</TableCell>
+              <TableCell>Quyền</TableCell>
               <TableCell align="right">Ảnh</TableCell>
               <TableCell align="right">Trạng thái</TableCell>
               <TableCell align="right">Thao tác</TableCell>
@@ -118,30 +146,43 @@ const ListUsersTable: FC<RecentOrdersTableProps> = ({ users }) => {
                       gutterBottom
                       noWrap
                     >
-                      {user.createAt}
+                      {user.role}
                     </Typography>
                   </TableCell>
-                  <TableCell>
-                    <Typography
-                      variant="body1"
-                      fontWeight="bold"
-                      color="text.primary"
-                      gutterBottom
-                      noWrap
-                    >
-                      {user.updateAt}
-                    </Typography>
-                  </TableCell>
-                  <TableCell align="right">
-                    <Typography
-                      variant="body1"
-                      fontWeight="bold"
-                      color="text.primary"
-                      gutterBottom
-                      noWrap
-                    >
-                      {user.avatar}
-                    </Typography>
+                  <TableCell align="right" sx={{ maxWidth: 100 }}>
+                    {showImage ? (
+                      !fullScreen ? (
+                        <img
+                          onClick={() => setShowImage(false)}
+                          src={user.avatar_link}
+                          alt={'Product image'}
+                          width={'100%'}
+                        />
+                      ) : (
+                        <img
+                          onClick={() => setShowImage(false)}
+                          src={user.avatar_link}
+                          alt={'Avatar'}
+                          width={'150%'}
+                        />
+                      )
+                    ) : (
+                      <Tooltip title="Xem ảnh" arrow>
+                        <IconButton
+                          onClick={() => setShowImage(true)}
+                          sx={{
+                            '&:hover': {
+                              background: theme.colors.primary.lighter
+                            },
+                            color: theme.palette.primary.main
+                          }}
+                          color="inherit"
+                          size="small"
+                        >
+                          <RemoveRedEyeOutlined fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                    )}
                   </TableCell>
                   <TableCell align="right">
                     {getStatusLabel(user.isEmailVerified)}
@@ -149,6 +190,9 @@ const ListUsersTable: FC<RecentOrdersTableProps> = ({ users }) => {
                   <TableCell align="right">
                     <Tooltip title="Edit" arrow>
                       <IconButton
+                        onClick={() =>
+                          route.push(`/admin/list-users/${user.id}`)
+                        }
                         sx={{
                           '&:hover': {
                             background: theme.colors.primary.lighter
@@ -183,7 +227,7 @@ const ListUsersTable: FC<RecentOrdersTableProps> = ({ users }) => {
       <Box p={2}>
         <TablePagination
           component="div"
-          count={data.length}
+          count={total}
           onPageChange={handlePageChange}
           onRowsPerPageChange={handleLimitChange}
           page={page}
@@ -193,14 +237,6 @@ const ListUsersTable: FC<RecentOrdersTableProps> = ({ users }) => {
       </Box>
     </Card>
   );
-};
-
-ListUsersTable.propTypes = {
-  users: PropTypes.array.isRequired
-};
-
-ListUsersTable.defaultProps = {
-  users: []
 };
 
 export default ListUsersTable;

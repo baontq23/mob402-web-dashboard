@@ -4,7 +4,7 @@ import PageHeader from '@/content/Admin/ListUsers/PageHeader';
 import PageTitleWrapper from '@/components/PageTitleWrapper';
 import { Grid, Container } from '@mui/material';
 import Footer from '@/components/Footer';
-import RecentOrders from '@/content/Admin/ListUsers/ListUsers';
+import ListUsersTable from '@/content/Admin/ListUsers/ListUsersTable';
 
 function ApplicationsTransactions() {
   return (
@@ -24,7 +24,7 @@ function ApplicationsTransactions() {
           spacing={3}
         >
           <Grid item xs={12}>
-            <RecentOrders />
+            <ListUsersTable />
           </Grid>
         </Grid>
       </Container>
