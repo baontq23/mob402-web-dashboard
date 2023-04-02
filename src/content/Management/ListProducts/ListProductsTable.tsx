@@ -88,19 +88,20 @@ const ListProductsTable: FC<ListProductsTableProps> = () => {
   };
 
   const handleSearch = (q: string) => {
+    setPage(0);
     setSearchValue(q);
   };
 
   const handleGetData = useCallback(() => {
+    const params = searchValue
+      ? { name: searchValue, page: page + 1, limit }
+      : { page: page + 1, limit };
     axiosInstance({
       url: 'v1/products',
       headers: {
         Authorization: 'Bearer ' + localStorage.getItem('accessToken')
       },
-      params: {
-        page: page + 1,
-        limit
-      }
+      params
     })
       .then((res) => {
         setData(res.data.results);
@@ -109,7 +110,7 @@ const ListProductsTable: FC<ListProductsTableProps> = () => {
       .catch((e) => {
         console.log(e);
       });
-  }, [page, limit]);
+  }, [page, limit, searchValue]);
 
   const onSubmit = (data) => {
     const formData = new FormData();
@@ -168,7 +169,7 @@ const ListProductsTable: FC<ListProductsTableProps> = () => {
 
   useEffect(() => {
     handleGetData();
-  }, [page, limit]);
+  }, [page, limit, searchValue]);
 
   const handlePageChange = (_event: any, newPage: number): void => {
     setPage(newPage);
