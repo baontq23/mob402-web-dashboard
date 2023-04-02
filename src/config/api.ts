@@ -6,7 +6,7 @@ interface RetryConfig extends AxiosRequestConfig {
 
 const axiosInstance = axios.create({
   baseURL: process.env.API_URL,
-  timeout: 1000
+  timeout: 10000
 });
 
 axiosInstance.interceptors.response.use(
