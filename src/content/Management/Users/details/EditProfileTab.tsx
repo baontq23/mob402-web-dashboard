@@ -17,9 +17,39 @@ import CloseTwoToneIcon from '@mui/icons-material/CloseTwoTone';
 import Text from '@/components/Text';
 import Label from '@/components/Label';
 import { useAuth } from '@/hook/useAuth';
+import { LoadingButton } from '@mui/lab';
+import { useState } from 'react';
+import axiosInstance from '@/config/api';
 type Props = {};
 const EditProfileTab: React.FC<Props> = () => {
+  const [loading, setLoading] = useState<boolean>(false);
   const auth = useAuth();
+
+  const handleSendEmail = () => {
+    setLoading(true);
+    axiosInstance({
+      method: 'POST',
+      url: '/v1/auth/send-verification-email',
+
+      headers: {
+        Authorization: 'Bearer ' + localStorage.getItem('accessToken')
+      }
+    })
+      .then((res) => {
+        if (res.status === 204) {
+          alert('Đã gửi email xác nhận. Vui lòng kiểm tra hòm thư!');
+        } else {
+          alert('Gửi email thất bại.');
+        }
+      })
+      .catch((e) => {
+        console.log(e);
+        alert('Máy chủ gửi thư không khả dụng. Vui lòng quay lại sau.');
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  };
   return (
     <Grid container spacing={3}>
       <Grid item xs={12}>
@@ -79,10 +109,14 @@ const EditProfileTab: React.FC<Props> = () => {
                       <b>Verified</b>
                     </Label>
                   ) : (
-                    <Label color="warning">
-                      <CloseTwoToneIcon fontSize="small" />
-                      <b>Need Verify</b>
-                    </Label>
+                    <LoadingButton
+                      loading={loading}
+                      onClick={handleSendEmail}
+                      startIcon={<CloseTwoToneIcon fontSize="small" />}
+                      color="warning"
+                    >
+                      Gửi email xác thực
+                    </LoadingButton>
                   )}
                 </Grid>
               </Grid>
