@@ -20,10 +20,12 @@ import { useAuth } from '@/hook/useAuth';
 import { LoadingButton } from '@mui/lab';
 import { useState } from 'react';
 import axiosInstance from '@/config/api';
+import { useRouter } from 'next/router';
 type Props = {};
 const EditProfileTab: React.FC<Props> = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const auth = useAuth();
+  const route = useRouter();
 
   const handleSendEmail = () => {
     setLoading(true);
@@ -68,7 +70,11 @@ const EditProfileTab: React.FC<Props> = () => {
                 Quản lý thông tin, địa chỉ email
               </Typography>
             </Box>
-            <Button variant="text" startIcon={<EditTwoToneIcon />}>
+            <Button
+              onClick={() => route.push('profile/edit')}
+              variant="text"
+              startIcon={<EditTwoToneIcon />}
+            >
               Chỉnh sửa
             </Button>
           </Box>
@@ -137,7 +143,11 @@ const EditProfileTab: React.FC<Props> = () => {
                 primary="Đổi mật khẩu"
                 secondary="Bạn có thể đổi mật khẩu tại đây"
               />
-              <Button size="large" variant="outlined">
+              <Button
+                onClick={() => route.push('profile/change-password')}
+                size="large"
+                variant="outlined"
+              >
                 Đổi mật khẩu
               </Button>
             </ListItem>
