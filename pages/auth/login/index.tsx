@@ -68,8 +68,8 @@ function AuthLogin() {
     mode: 'onBlur',
 
     defaultValues: {
-      email: 'baontq23@gmail.com',
-      password: 'Bao03072003'
+      email: '',
+      password: ''
     }
   });
   const onSubmit = (data) => {
