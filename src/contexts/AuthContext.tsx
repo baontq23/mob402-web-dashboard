@@ -13,6 +13,7 @@ type UserDataType = {
   name: string;
   email: string;
   avatar: string | null;
+  avatar_link: string;
   role: string;
   isEmailVerified: boolean;
 };
@@ -24,9 +25,16 @@ type AuthValuesType = {
   setLoading: (value: boolean) => void;
   setUser: (value: UserDataType | null) => void;
   login: (params: LoginParams, errorCallback?: ErrCallbackType) => void;
+  register: (params: LoginParams, errorCallback?: ErrCallbackType) => void;
 };
 
 type LoginParams = {
+  email: string;
+  password: string;
+};
+
+type RegisterParams = {
+  name: string;
   email: string;
   password: string;
 };
@@ -35,6 +43,7 @@ const defaultProvider: AuthValuesType = {
   user: null,
   loading: true,
   login: () => Promise.resolve(),
+  register: () => Promise.resolve(),
   logout: () => Promise.resolve(),
   setLoading: () => Boolean,
   setUser: () => null
@@ -107,6 +116,31 @@ const AuthProvider: React.FC<Props> = ({ children }) => {
       });
   };
 
+  const register = async (params: RegisterParams, onError: ErrCallbackType) => {
+    axiosInstance({
+      url: 'v1/auth/register',
+      method: 'POST',
+      data: {
+        name: params.name,
+        email: params.email,
+        password: params.password
+      }
+    })
+      .then((res) => {
+        localStorage.setItem('accessToken', res.data.tokens.access.token);
+        localStorage.setItem('refreshToken', res.data.tokens.refresh.token);
+        setUser(res.data.user);
+        const returnUrl = router.query.returnUrl;
+        const redirectURL =
+          returnUrl && returnUrl !== '/' ? returnUrl : '/dashboards';
+        router.replace(redirectURL as string);
+      })
+      .catch((e) => {
+        console.log(e);
+        onError(e);
+      });
+  };
+
   const logout = async () => {
     axiosInstance.post('v1/auth/logout', {
       refreshToken: localStorage.getItem('refreshToken')
@@ -121,6 +155,7 @@ const AuthProvider: React.FC<Props> = ({ children }) => {
     login,
     loading,
     setUser,
+    register,
     user,
     logout,
     setLoading

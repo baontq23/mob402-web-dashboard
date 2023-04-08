@@ -1,53 +1,64 @@
-import axios from 'axios';
+import axios, { AxiosRequestConfig } from 'axios';
+
+interface RetryConfig extends AxiosRequestConfig {
+  _retry?: boolean;
+}
 
 const axiosInstance = axios.create({
   baseURL: process.env.API_URL,
-  timeout: 1000
+  timeout: 10000
 });
 
 axiosInstance.interceptors.response.use(
   (res) => {
     return res;
   },
-  async (error) => {
-    const originalConfig = error.config;
-    if (error.status === 401) {
+  (error) => {
+    const originalConfig = error.config as RetryConfig;
+    if (!error.response) {
+      return Promise.reject(error);
+    }
+    if (error.response.status === 401 && !originalConfig._retry) {
+      originalConfig._retry = true;
+      console.log('Refresh session');
       if (!localStorage.getItem('refreshToken')) {
-        window.localStorage.removeItem('accessToken');
-        window.location.href = '/auth/login';
+        clearSession();
       } else {
-        try {
-          const rs = await axios.post(
-            process.env.API_URL + 'v1/auth/refresh-tokens',
-            { refreshToken: localStorage.getItem('refreshToken') }
-          );
-          if (rs) {
-            window.localStorage.setItem(
-              'accessToken',
-              rs.data.tokens.access.token
-            );
-            window.localStorage.setItem(
-              'refreshToken',
-              rs.data.tokens.refresh.token
-            );
-            return axiosInstance(originalConfig);
-          } else {
-            window.localStorage.removeItem('accessToken');
-            window.localStorage.removeItem('refreshToken');
-            window.location.href = '/auth/login';
-          }
-        } catch (_error) {
-          window.localStorage.removeItem('accessToken');
-          window.localStorage.removeItem('refreshToken');
-          window.location.href = '/auth/login';
-          alert('Phiên đã hết hạn. Vui lòng đăng nhập lại!');
-          return Promise.reject(_error);
-        }
+        axios
+          .post(process.env.API_URL + 'v1/auth/refresh-tokens', {
+            refreshToken: localStorage.getItem('refreshToken')
+          })
+          .then((res) => {
+            if (res.data) {
+              window.localStorage.setItem(
+                'accessToken',
+                res.data.tokens.access.token
+              );
+              window.localStorage.setItem(
+                'refreshToken',
+                res.data.tokens.refresh.token
+              );
+              originalConfig.headers.Authorization = `Bearer ${res.data.tokens.access.token}`;
+              return axiosInstance(originalConfig);
+            } else {
+              clearSession();
+            }
+          })
+          .catch((e) => {
+            console.log(e);
+            clearSession();
+          });
       }
-
+    } else {
       return Promise.reject(error);
     }
   }
 );
+
+const clearSession = () => {
+  window.localStorage.removeItem('accessToken');
+  window.localStorage.removeItem('refreshToken');
+  window.location.href = '/auth/login';
+};
 
 export default axiosInstance;

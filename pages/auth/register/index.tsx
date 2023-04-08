@@ -29,7 +29,6 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import { Controller, useForm } from 'react-hook-form';
 import { LoadingButton } from '@mui/lab';
 import { useAuth } from '@/hook/useAuth';
-import Link from '@/components/Link';
 const MainContent = styled(Box)(
   () => `
       height: 100%;
@@ -53,11 +52,10 @@ const schema = yup.object().shape({
   password: yup.string().min(5).required()
 });
 
-function AuthLogin() {
+const AuthRegister = () => {
   const auth = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setLoading] = useState(false);
-  //const router = useRouter();
   const {
     control,
     handleSubmit,
@@ -68,6 +66,7 @@ function AuthLogin() {
     mode: 'onBlur',
 
     defaultValues: {
+      name: '',
       email: '',
       password: ''
     }
@@ -75,8 +74,10 @@ function AuthLogin() {
   const onSubmit = (data) => {
     setLoading(true);
     setTimeout(() => {
-      auth.login(data, () => {
-        setError('email', { message: 'Thông tin đăng nhập không chính xác!' });
+      auth.register(data, () => {
+        setError('email', {
+          message: 'Thông tin đăng ký không hợp lệ hoặc đã tồn tại!'
+        });
         setLoading(false);
       });
     }, 1);
@@ -84,7 +85,7 @@ function AuthLogin() {
   return (
     <>
       <Head>
-        <title>Login</title>
+        <title>Đăng ký</title>
       </Head>
       <MainContent>
         <TopWrapper>
@@ -92,7 +93,7 @@ function AuthLogin() {
             <Box textAlign="center">
               <Container maxWidth="xs">
                 <Typography variant="h2" sx={{ mb: 2 }}>
-                  Login
+                  Đăng ký
                 </Typography>
               </Container>
               <Grid container justifyContent={'center'}>
@@ -104,13 +105,36 @@ function AuthLogin() {
                   >
                     <FormControl fullWidth sx={{ mb: 2 }}>
                       <Controller
+                        name="name"
+                        control={control}
+                        rules={{ required: true }}
+                        render={({ field: { value, onChange, onBlur } }) => (
+                          <TextField
+                            autoFocus
+                            label="Họ tên"
+                            value={value}
+                            onBlur={onBlur}
+                            onChange={onChange}
+                            error={Boolean(errors.email)}
+                            placeholder="Name"
+                          />
+                        )}
+                      />
+                      {errors.email && (
+                        <FormHelperText sx={{ color: 'error.main' }}>
+                          {errors.email.message}
+                        </FormHelperText>
+                      )}
+                    </FormControl>
+                    <FormControl fullWidth sx={{ mb: 2 }}>
+                      <Controller
                         name="email"
                         control={control}
                         rules={{ required: true }}
                         render={({ field: { value, onChange, onBlur } }) => (
                           <TextField
                             autoFocus
-                            label="Email or username"
+                            label="Email"
                             value={value}
                             onBlur={onBlur}
                             onChange={onChange}
@@ -169,6 +193,7 @@ function AuthLogin() {
                         </FormHelperText>
                       )}
                     </FormControl>
+
                     <LoadingButton
                       fullWidth
                       size="large"
@@ -177,10 +202,9 @@ function AuthLogin() {
                       variant="contained"
                       sx={{ mt: 2 }}
                     >
-                      Login
+                      Đăng ký
                     </LoadingButton>
                   </form>
-                  <Link href={'/auth/register'}>Đăng ký</Link>
                 </Grid>
               </Grid>
             </Box>
@@ -234,10 +258,10 @@ function AuthLogin() {
       </MainContent>
     </>
   );
-}
+};
 
-export default AuthLogin;
+export default AuthRegister;
 
-AuthLogin.getLayout = function getLayout(page: ReactElement) {
+AuthRegister.getLayout = function getLayout(page: ReactElement) {
   return <BaseLayout>{page}</BaseLayout>;
 };

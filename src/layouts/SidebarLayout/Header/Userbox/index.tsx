@@ -57,7 +57,7 @@ const UserBoxDescription = styled(Typography)(
 `
 );
 
-function HeaderUserbox() {
+function HeaderUserBox() {
   const auth = useAuth();
 
   const ref = useRef<any>(null);
@@ -74,7 +74,11 @@ function HeaderUserbox() {
   return (
     <>
       <UserBoxButton color="secondary" ref={ref} onClick={handleOpen}>
-        <Avatar variant="rounded" alt={auth.user.name} src={auth.user.avatar} />
+        <Avatar
+          variant="rounded"
+          alt={auth.user.name}
+          src={auth.user.avatar_link}
+        />
         <Hidden mdDown>
           <UserBoxText>
             <UserBoxLabel variant="body1">{auth.user.name}</UserBoxLabel>
@@ -130,4 +134,4 @@ function HeaderUserbox() {
   );
 }
 
-export default HeaderUserbox;
+export default HeaderUserBox;

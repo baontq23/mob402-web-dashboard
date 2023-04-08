@@ -13,12 +13,45 @@ import {
 
 import EditTwoToneIcon from '@mui/icons-material/EditTwoTone';
 import DoneTwoToneIcon from '@mui/icons-material/DoneTwoTone';
+import CloseTwoToneIcon from '@mui/icons-material/CloseTwoTone';
 import Text from '@/components/Text';
 import Label from '@/components/Label';
 import { useAuth } from '@/hook/useAuth';
+import { LoadingButton } from '@mui/lab';
+import { useState } from 'react';
+import axiosInstance from '@/config/api';
+import { useRouter } from 'next/router';
 type Props = {};
 const EditProfileTab: React.FC<Props> = () => {
+  const [loading, setLoading] = useState<boolean>(false);
   const auth = useAuth();
+  const route = useRouter();
+
+  const handleSendEmail = () => {
+    setLoading(true);
+    axiosInstance({
+      method: 'POST',
+      url: '/v1/auth/send-verification-email',
+
+      headers: {
+        Authorization: 'Bearer ' + localStorage.getItem('accessToken')
+      }
+    })
+      .then((res) => {
+        if (res.status === 204) {
+          alert('Đã gửi email xác nhận. Vui lòng kiểm tra hòm thư!');
+        } else {
+          alert('Gửi email thất bại.');
+        }
+      })
+      .catch((e) => {
+        console.log(e);
+        alert('Máy chủ gửi thư không khả dụng. Vui lòng quay lại sau.');
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  };
   return (
     <Grid container spacing={3}>
       <Grid item xs={12}>
@@ -37,7 +70,11 @@ const EditProfileTab: React.FC<Props> = () => {
                 Quản lý thông tin, địa chỉ email
               </Typography>
             </Box>
-            <Button variant="text" startIcon={<EditTwoToneIcon />}>
+            <Button
+              onClick={() => route.push('profile/edit')}
+              variant="text"
+              startIcon={<EditTwoToneIcon />}
+            >
               Chỉnh sửa
             </Button>
           </Box>
@@ -62,7 +99,7 @@ const EditProfileTab: React.FC<Props> = () => {
                 </Grid>
                 <Grid item xs={12} sm={8} md={9}>
                   <Text color="black">
-                    <b>baontq23</b>
+                    <b>{auth.user.email}</b>
                   </Text>
                 </Grid>
 
@@ -72,10 +109,21 @@ const EditProfileTab: React.FC<Props> = () => {
                   </Box>
                 </Grid>
                 <Grid item xs={12} sm={8} md={9}>
-                  <Label color="success">
-                    <DoneTwoToneIcon fontSize="small" />
-                    <b>Verified</b>
-                  </Label>
+                  {auth.user.isEmailVerified ? (
+                    <Label color="success">
+                      <DoneTwoToneIcon fontSize="small" />
+                      <b>Verified</b>
+                    </Label>
+                  ) : (
+                    <LoadingButton
+                      loading={loading}
+                      onClick={handleSendEmail}
+                      startIcon={<CloseTwoToneIcon fontSize="small" />}
+                      color="warning"
+                    >
+                      Gửi email xác thực
+                    </LoadingButton>
+                  )}
                 </Grid>
               </Grid>
             </Typography>
@@ -95,7 +143,11 @@ const EditProfileTab: React.FC<Props> = () => {
                 primary="Đổi mật khẩu"
                 secondary="Bạn có thể đổi mật khẩu tại đây"
               />
-              <Button size="large" variant="outlined">
+              <Button
+                onClick={() => route.push('profile/change-password')}
+                size="large"
+                variant="outlined"
+              >
                 Đổi mật khẩu
               </Button>
             </ListItem>

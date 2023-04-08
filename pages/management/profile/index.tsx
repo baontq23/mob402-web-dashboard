@@ -10,13 +10,6 @@ import { useAuth } from '@/hook/useAuth';
 
 function ManagementUserProfile() {
   const auth = useAuth();
-  const user = {
-    name: auth.user.name,
-    coverImg: '/static/images/placeholders/covers/5.jpg',
-    avatar: auth.user.avatar,
-    role: auth.user.role,
-    isEmailVerified: auth.user.isEmailVerified
-  };
 
   return (
     <>
@@ -32,7 +25,7 @@ function ManagementUserProfile() {
           spacing={3}
         >
           <Grid item xs={12} md={12}>
-            <ProfileCover user={user} />
+            <ProfileCover />
           </Grid>
           <Grid item xs={12} md={12}>
             <EditProfileTab />

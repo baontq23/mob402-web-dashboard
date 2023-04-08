@@ -4,6 +4,6 @@
 
 module.exports = {
   env: {
-    API_URL: 'http://192.168.31.238:3010/'
+    API_URL: 'https://mob402-api.baontq.dev/'
   }
 };

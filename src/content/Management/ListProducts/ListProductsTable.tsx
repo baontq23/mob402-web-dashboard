@@ -6,7 +6,6 @@ import {
   Box,
   FormControl,
   Card,
-  Checkbox,
   IconButton,
   Table,
   TableBody,
@@ -23,7 +22,8 @@ import {
   Dialog,
   DialogTitle,
   DialogContent,
-  DialogActions
+  DialogActions,
+  FormHelperText
 } from '@mui/material';
 import AddTwoToneIcon from '@mui/icons-material/AddTwoTone';
 import EditTwoToneIcon from '@mui/icons-material/EditTwoTone';
@@ -32,14 +32,23 @@ import DeleteTwoToneIcon from '@mui/icons-material/DeleteTwoTone';
 import RemoveRedEyeOutlined from '@mui/icons-material/RemoveRedEyeOutlined';
 import { IProduct } from '@/models/product';
 import axiosInstance from '@/config/api';
-
+import { Controller, useForm } from 'react-hook-form';
+import { useRouter } from 'next/router';
+import * as yup from 'yup';
+import { yupResolver } from '@hookform/resolvers/yup';
 interface ListProductsTableProps {
   className?: string;
 }
 
-const RecentOrdersTable: FC<ListProductsTableProps> = () => {
-  const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
-  const selectedBulkActions = selectedProducts.length > 0;
+const schema = yup.object().shape({
+  name: yup.string().required(),
+  price: yup.number().min(0).required(),
+  color: yup.string().required(),
+  type: yup.string().required()
+});
+
+const ListProductsTable: FC<ListProductsTableProps> = () => {
+  const route = useRouter();
   const [showImage, setShowImage] = useState<boolean>(false);
   // const [searchData, setSearchData] = useState<IProduct[]>([]);
   const [searchValue, setSearchValue] = useState<string>('');
@@ -49,33 +58,50 @@ const RecentOrdersTable: FC<ListProductsTableProps> = () => {
   const [limit, setLimit] = useState<number>(5);
 
   //Add Dialog State
-  const [imagePreview, setImagePreview] = useState<string>('');
+  const {
+    control,
+    handleSubmit,
+    reset,
+    formState: { errors }
+  } = useForm({
+    mode: 'onBlur',
+    resolver: yupResolver(schema),
+    defaultValues: {
+      name: '',
+      type: '',
+      color: '',
+      price: 0
+    }
+  });
+  const [imagePreview, setImagePreview] = useState<File>(null);
   const [openAddProductDialog, setOpenAddProductDialog] =
     useState<boolean>(false);
 
   const handleCloseAddProductDialog = () => {
+    reset();
     setOpenAddProductDialog(false);
-    setImagePreview('');
+    setImagePreview(null);
   };
 
   const handleChangeImage = (e: ChangeEvent<HTMLInputElement>) => {
-    setImagePreview(URL.createObjectURL(e.target.files[0]));
+    setImagePreview(e.target.files[0]);
   };
 
   const handleSearch = (q: string) => {
+    setPage(0);
     setSearchValue(q);
   };
 
   const handleGetData = useCallback(() => {
+    const params = searchValue
+      ? { name: searchValue, page: page + 1, limit }
+      : { page: page + 1, limit };
     axiosInstance({
       url: 'v1/products',
       headers: {
         Authorization: 'Bearer ' + localStorage.getItem('accessToken')
       },
-      params: {
-        page: page + 1,
-        limit
-      }
+      params
     })
       .then((res) => {
         setData(res.data.results);
@@ -84,7 +110,40 @@ const RecentOrdersTable: FC<ListProductsTableProps> = () => {
       .catch((e) => {
         console.log(e);
       });
-  }, [page, limit]);
+  }, [page, limit, searchValue]);
+
+  const onSubmit = (data) => {
+    const formData = new FormData();
+    formData.append('name', data.name);
+    formData.append('type', data.type);
+    formData.append('color', data.color);
+    formData.append('price', data.price);
+    imagePreview &&
+      formData.append('image', imagePreview, Date.now() + imagePreview.name);
+
+    handleCloseAddProductDialog();
+    axiosInstance({
+      method: 'POST',
+      url: 'v1/products',
+      headers: {
+        Authorization: 'Bearer ' + localStorage.getItem('accessToken'),
+        'Content-Type': 'multipart/form-data'
+      },
+      data: formData
+    })
+      .then((res) => {
+        if (res.status === 201) {
+          alert('Thêm sản phẩm thành công!');
+          handleGetData();
+        } else {
+          alert('Thêm sản phẩm thất bại!');
+        }
+      })
+      .catch((e) => {
+        console.log(e);
+        alert('Server error');
+      });
+  };
 
   const handleDeleteProduct = (id: string) => {
     axiosInstance({
@@ -110,28 +169,7 @@ const RecentOrdersTable: FC<ListProductsTableProps> = () => {
 
   useEffect(() => {
     handleGetData();
-  }, [page, limit]);
-
-  const handleSelectAllProducts = (
-    event: ChangeEvent<HTMLInputElement>
-  ): void => {
-    setSelectedProducts(
-      event.target.checked ? data.map((product) => product.id) : []
-    );
-  };
-
-  const handleSelectOneProduct = (
-    _event: ChangeEvent<HTMLInputElement>,
-    productId: string
-  ): void => {
-    if (!selectedProducts.includes(productId)) {
-      setSelectedProducts((prevSelected) => [...prevSelected, productId]);
-    } else {
-      setSelectedProducts((prevSelected) =>
-        prevSelected.filter((id) => id !== productId)
-      );
-    }
-  };
+  }, [page, limit, searchValue]);
 
   const handlePageChange = (_event: any, newPage: number): void => {
     setPage(newPage);
@@ -140,10 +178,6 @@ const RecentOrdersTable: FC<ListProductsTableProps> = () => {
   const handleLimitChange = (event: ChangeEvent<HTMLInputElement>): void => {
     setLimit(parseInt(event.target.value));
   };
-
-  const selectedSomeProducts =
-    selectedProducts.length > 0 && selectedProducts.length < data.length;
-  const selectedAllProducts = selectedProducts.length === data.length;
   const theme = useTheme();
   const fullScreen = useMediaQuery(theme.breakpoints.down('md'));
 
@@ -187,70 +221,34 @@ const RecentOrdersTable: FC<ListProductsTableProps> = () => {
   );
   return (
     <Card>
-      {selectedBulkActions && (
-        <Box flex={1} p={2}>
-          <Box
-            display="flex"
-            alignItems="center"
-            justifyContent="space-between"
+      <Box flex={1} p={2}>
+        <Box display="flex" alignItems="center" justifyContent="space-between">
+          <Button
+            onClick={() => setOpenAddProductDialog(true)}
+            sx={{ mr: 2 }}
+            variant="contained"
+            startIcon={<AddTwoToneIcon fontSize="small" />}
           >
-            <Box display="flex" alignItems="center">
-              <Typography variant="h5" color="text.secondary">
-                Thao tác hàng loạt:
-              </Typography>
-              <Button
-                color="error"
-                sx={{ ml: 1 }}
-                startIcon={<DeleteTwoToneIcon />}
-                variant="contained"
-              >
-                Xoá
-              </Button>
-            </Box>
-          </Box>
-        </Box>
-      )}
-      {!selectedBulkActions && (
-        <Box flex={1} p={2}>
-          <Box
-            display="flex"
-            alignItems="center"
-            justifyContent="space-between"
-          >
-            <Button
-              onClick={() => setOpenAddProductDialog(true)}
-              sx={{ mr: 2 }}
-              variant="contained"
-              startIcon={<AddTwoToneIcon fontSize="small" />}
-            >
-              Thêm sản phẩm
-            </Button>
+            Thêm sản phẩm
+          </Button>
 
-            <Box width={150}>
-              <FormControl fullWidth variant="outlined">
-                <TextField
-                  value={searchValue}
-                  onChange={(e) => handleSearch(e.target.value)}
-                  label={'Search'}
-                />
-              </FormControl>
-            </Box>
+          <Box width={150}>
+            <FormControl fullWidth variant="outlined">
+              <TextField
+                value={searchValue}
+                type="search"
+                onChange={(e) => handleSearch(e.target.value)}
+                label={'Search'}
+              />
+            </FormControl>
           </Box>
         </Box>
-      )}
+      </Box>
       <Divider />
       <TableContainer>
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell padding="checkbox">
-                <Checkbox
-                  color="primary"
-                  checked={selectedAllProducts}
-                  indeterminate={selectedSomeProducts}
-                  onChange={handleSelectAllProducts}
-                />
-              </TableCell>
               <TableCell>Tên sản phẩm</TableCell>
               <TableCell>Ảnh</TableCell>
               <TableCell>Màu sắc</TableCell>
@@ -260,19 +258,8 @@ const RecentOrdersTable: FC<ListProductsTableProps> = () => {
           </TableHead>
           <TableBody>
             {data.map((product) => {
-              const isProductSelected = selectedProducts.includes(product.id);
               return (
-                <TableRow hover key={product.id} selected={isProductSelected}>
-                  <TableCell padding="checkbox">
-                    <Checkbox
-                      color="primary"
-                      checked={isProductSelected}
-                      onChange={(event: ChangeEvent<HTMLInputElement>) =>
-                        handleSelectOneProduct(event, product.id)
-                      }
-                      value={isProductSelected}
-                    />
-                  </TableCell>
+                <TableRow hover key={product.id}>
                   <TableCell>
                     <Typography
                       variant="body1"
@@ -292,12 +279,17 @@ const RecentOrdersTable: FC<ListProductsTableProps> = () => {
                       !fullScreen ? (
                         <img
                           onClick={() => setShowImage(false)}
-                          src={product.image}
+                          src={product.image_link}
                           alt={'Product image'}
                           width={'100%'}
                         />
                       ) : (
-                        <img src={product.image} width={'150%'} />
+                        <img
+                          onClick={() => setShowImage(false)}
+                          src={product.image_link}
+                          alt={'Product image'}
+                          width={'150%'}
+                        />
                       )
                     ) : (
                       <Tooltip title="Xem ảnh" arrow>
@@ -342,6 +334,9 @@ const RecentOrdersTable: FC<ListProductsTableProps> = () => {
                   <TableCell align="right">
                     <Tooltip title="Sửa" arrow>
                       <IconButton
+                        onClick={() =>
+                          route.push(`/management/list-products/${product.id}`)
+                        }
                         sx={{
                           '&:hover': {
                             background: theme.colors.primary.lighter
@@ -400,61 +395,131 @@ const RecentOrdersTable: FC<ListProductsTableProps> = () => {
         onClose={handleCloseAddProductDialog}
       >
         <DialogTitle>Thêm sản phẩm</DialogTitle>
-        <DialogContent>
-          <ImageWrapper sx={{ margin: imagePreview ? 0 : 10 }}>
-            <img src={imagePreview} width={'100%'} />
-            <ButtonUploadWrapper>
-              <Input
-                accept="image/*"
-                id="icon-button-file"
-                name="icon-button-file"
-                type="file"
-                onChange={handleChangeImage}
+        <form noValidate onSubmit={handleSubmit(onSubmit)} autoComplete={'off'}>
+          <DialogContent>
+            <ImageWrapper sx={{ margin: imagePreview ? 0 : 10 }}>
+              <img
+                src={imagePreview ? URL.createObjectURL(imagePreview) : ''}
+                width={'100%'}
               />
-              <label htmlFor="icon-button-file">
-                <IconButton component="span" color="primary">
-                  <UploadTwoToneIcon />
-                </IconButton>
-              </label>
-            </ButtonUploadWrapper>
-          </ImageWrapper>
-          <TextField
-            autoFocus
-            margin="dense"
-            label="Tên sản phẩm"
-            type="text"
-            fullWidth
-            variant="standard"
-          />
-          <TextField
-            margin="dense"
-            label="Đơn giá"
-            type="text"
-            fullWidth
-            variant="standard"
-          />
-          <TextField
-            margin="dense"
-            label="Màu sắc"
-            type="text"
-            fullWidth
-            variant="standard"
-          />
-          <TextField
-            margin="dense"
-            label="Loại sản phẩm"
-            type="text"
-            fullWidth
-            variant="standard"
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseAddProductDialog}>Huỷ bỏ</Button>
-          <Button onClick={handleCloseAddProductDialog}>Thêm</Button>
-        </DialogActions>
+              <ButtonUploadWrapper>
+                <Input
+                  accept="image/*"
+                  id="icon-button-file"
+                  name="icon-button-file"
+                  type="file"
+                  onChange={handleChangeImage}
+                />
+                <label htmlFor="icon-button-file">
+                  <IconButton component="span" color="primary">
+                    <UploadTwoToneIcon />
+                  </IconButton>
+                </label>
+              </ButtonUploadWrapper>
+            </ImageWrapper>
+            <Controller
+              name="name"
+              control={control}
+              rules={{ required: true }}
+              render={({ field: { value, onChange, onBlur } }) => (
+                <TextField
+                  value={value}
+                  onChange={onChange}
+                  onBlur={onBlur}
+                  autoFocus
+                  margin="dense"
+                  label="Tên sản phẩm"
+                  type="text"
+                  fullWidth
+                  error={!!errors.name}
+                  variant="standard"
+                />
+              )}
+            />
+            {errors.name && (
+              <FormHelperText sx={{ color: 'error.main' }}>
+                {errors.name.message}
+              </FormHelperText>
+            )}
+            <Controller
+              name="price"
+              control={control}
+              rules={{ required: true }}
+              render={({ field: { value, onChange, onBlur } }) => (
+                <TextField
+                  value={value}
+                  onChange={onChange}
+                  onBlur={onBlur}
+                  margin="dense"
+                  label="Đơn giá"
+                  type="number"
+                  error={!!errors.price}
+                  InputProps={{ inputProps: { min: 0 } }}
+                  fullWidth
+                  variant="standard"
+                />
+              )}
+            />
+            {errors.price && (
+              <FormHelperText sx={{ color: 'error.main' }}>
+                {errors.price.message}
+              </FormHelperText>
+            )}
+            <Controller
+              name="color"
+              control={control}
+              rules={{ required: true }}
+              render={({ field: { value, onChange, onBlur } }) => (
+                <TextField
+                  value={value}
+                  onChange={onChange}
+                  onBlur={onBlur}
+                  margin="dense"
+                  label="Màu sắc"
+                  error={!!errors.color}
+                  type="text"
+                  fullWidth
+                  variant="standard"
+                />
+              )}
+            />
+            {errors.color && (
+              <FormHelperText sx={{ color: 'error.main' }}>
+                {errors.color.message}
+              </FormHelperText>
+            )}
+            <Controller
+              name="type"
+              control={control}
+              rules={{ required: true }}
+              render={({ field: { value, onChange, onBlur } }) => (
+                <TextField
+                  value={value}
+                  onChange={onChange}
+                  onBlur={onBlur}
+                  margin="dense"
+                  label="Loại sản phẩm"
+                  type="text"
+                  error={!!errors.type}
+                  fullWidth
+                  variant="standard"
+                />
+              )}
+            />
+            {errors.type && (
+              <FormHelperText sx={{ color: 'error.main' }}>
+                {errors.type.message}
+              </FormHelperText>
+            )}
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleCloseAddProductDialog}>Huỷ bỏ</Button>
+            <Button type="submit">Thêm</Button>
+          </DialogActions>
+        </form>
       </Dialog>
     </Card>
   );
 };
 
-export default RecentOrdersTable;
+export default ListProductsTable;
